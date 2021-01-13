@@ -1,28 +1,15 @@
 package dk.kb.likealook.api.impl;
 
-import dk.kb.likealook.api.*;
-import java.util.ArrayList;
-import dk.kb.likealook.model.ErrorDto;
-import java.io.File;
-import java.util.List;
-import java.util.Map;
+import dk.kb.likealook.api.LikeALookApi;
 import dk.kb.likealook.model.WholeImageDto;
-
-import dk.kb.webservice.exception.ServiceException;
 import dk.kb.webservice.exception.InternalServiceException;
-
+import dk.kb.webservice.exception.InvalidArgumentServiceException;
+import dk.kb.webservice.exception.ServiceException;
+import org.apache.cxf.jaxrs.ext.MessageContext;
+import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-import java.io.File;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -34,21 +21,16 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Providers;
-import javax.ws.rs.core.MediaType;
-import org.apache.cxf.jaxrs.model.wadl.Description;
-import org.apache.cxf.jaxrs.model.wadl.DocTarget;
-import org.apache.cxf.jaxrs.ext.MessageContext;
-import org.apache.cxf.jaxrs.ext.multipart.*;
-
-import io.swagger.annotations.Api;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Random;
 
 /**
- * like-a-look
- *
- * <p>This pom can be inherited by projects wishing to integrate to the SBForge development platform. 
- *
+ * The real implementation. Copy changes after openapi.yaml-updates from LikeALookAPiServiceImpl.
  */
-public class LikeALookApiServiceImpl implements LikeALookApi {
+public class LikeALook implements LikeALookApi {
     private Logger log = LoggerFactory.getLogger(this.toString());
 
 
@@ -101,23 +83,13 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
      */
     @Override
     public List<String> collectionsGet() throws ServiceException {
-        // TODO: Implement...
-    
-        
-        try{ 
-            List<String> response = new ArrayList<>();
-        response.add("ThA3A1");
-        return response;
-        } catch (Exception e){
-            throw handleException(e);
-        }
-    
+        return Collections.singletonList("daner");
     }
 
     /**
      * Request images similar to the uploaded image
      * 
-     * @param image: The image to use as source for the similarity search. JPEG only
+     * @param imageDetail: The image to use as source for the similarity search. JPEG only
      * 
      * @param collection: The collection to search for similar images. If none is specified, the default collection will be used
      * 
@@ -134,22 +106,25 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
      */
     @Override
     public List<WholeImageDto> findSimilarWhole( Attachment imageDetail, String collection, String sourceID, Integer maxMatches) throws ServiceException {
-        // TODO: Implement...
-    
-        
-        try{ 
-            List<WholeImageDto> response = new ArrayList<>();
-        WholeImageDto item = new WholeImageDto();
-        item.setSourceID("rIOEp056M02D");
-        item.setImageID("UN40R");
-        item.setDistance(1664215635447304684.5046514302058252D);
-        item.setUrl("bF8LCsmBT");
-        response.add(item);
-        return response;
-        } catch (Exception e){
-            throw handleException(e);
+        if (collection != null && !collection.isEmpty() && !"daner".equals(collection)) {
+            throw new InvalidArgumentServiceException("The collection '" + collection + "' is unknown");
         }
-    
+        log.info("findSimilarWhole(..., collection=" + collection + ", sourceID=" + sourceID + ", maxMatches=" + maxMatches + ") called");
+        List<WholeImageDto> response = new ArrayList<>();
+        Random r = new Random(("" + sourceID).hashCode());
+        double distance = r.nextDouble();
+        for (int i = 0 ; i < (maxMatches == null ? 10 : maxMatches) ; i++) {
+            WholeImageDto item = new WholeImageDto();
+            distance += r.nextDouble();
+            if (sourceID != null) {
+                item.setSourceID(sourceID);
+            }
+            item.setImageID("SampleImage_" + i + "_" + distance);
+            item.setDistance(distance);
+            item.setUrl(String.format(Locale.ROOT, "https://placekitten.com/g/%d/%d", 200+((i+1)/2), 300+(i/2)));
+            response.add(item);
+        }
+        return response;
     }
 
     /**
@@ -166,16 +141,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
      */
     @Override
     public String ping() throws ServiceException {
-        // TODO: Implement...
-    
-        
-        try{ 
-            String response = "vHoMN";
-        return response;
-        } catch (Exception e){
-            throw handleException(e);
-        }
-    
+        return "pong";
     }
 
 

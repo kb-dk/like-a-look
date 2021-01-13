@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import dk.kb.likealook.api.impl.LikeALookApiServiceImpl;
+import dk.kb.likealook.api.impl.LikeALook;
 import dk.kb.webservice.ServiceExceptionMapper;
 
 
@@ -15,10 +15,9 @@ public class Application extends javax.ws.rs.core.Application {
     public Set<Class<?>> getClasses() {
         return new HashSet<>(Arrays.asList(
                 JacksonJsonProvider.class,
-                LikeALookApiServiceImpl.class,
+                LikeALook.class,
                 ServiceExceptionMapper.class
         ));
     }
-
 
 }
