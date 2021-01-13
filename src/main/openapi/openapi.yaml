@@ -12,6 +12,63 @@ servers:
   - url: "/${project.artifactId}/api"
     description: "Current server"
 paths:
+
+  # https://swagger.io/docs/specification/describing-request-body/file-upload/
+  /similar:
+    post:
+      tags:
+        - "${project.name}"
+      summary: 'Request images similar to the uploaded image'
+      operationId: findSimilarWhole
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - image
+              properties:
+                image:
+                  description: 'The image to use as source for the similarity search. JPEG only'
+                  type: string
+                  format: binary
+                collection:
+                  description: 'The collection to search for similar images.
+                                If none is specified, the default collection will be used'
+                  type: string
+                sourceID:
+                  description: 'Optional ID for the image, used for tracking & debugging'
+                  type: string
+                maxMatches:
+                  description: 'The maximum number of similar images to return'
+                  type: integer
+                  default: 10
+
+      responses:
+        '200':
+          description: 'An array of metadata for similar images, including URLs for the images'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WholeImage'
+
+  /collections:
+    get:
+      tags:
+        - "${project.name}"
+      summary: 'List the available collections'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  type: string
+
   /ping:
     get:
       tags:
@@ -39,37 +96,27 @@ paths:
             text/plain:
               schema:
                 type: string
-  /hello:
-    get:
-      tags:
-        - "${project.name}"
-      summary: 'Request a Hello World message, for testing purposes'
-      operationId: getGreeting
-      parameters:
-        - name: alternateHello
-          in: query
-          description: Optional alternative to using the word 'Hello' in the reply
-          required: false
-          schema:
-            type: string
-            default: World
-      responses:
-        '200':
-          description: A JSON structure containing a Hello World message
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HelloReply'
 components:
   schemas:
-    HelloReply:
+    WholeImage:
       type: object
       required:
-        - message
+        - url
       properties:
-        message:
+        sourceID:
           type: string
-          description: Greeting from the API
+          description: 'The ID for the source image, if one was provided by the caller'
+        imageID:
+          type: string
+          description: 'The ID for the similar image'
+        distance:
+          type: number
+          format: double
+          description: 'The similarity distance: Lower is better, 0 is identical'
+        url:
+          type: string
+          description: 'The URL for the similar image'
+
     Error:
       type: object
       required:
