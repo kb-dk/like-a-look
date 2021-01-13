@@ -2,7 +2,11 @@
 
 Finding similar images using machine learning
 
+## Current status
+
 Very much under initial development!
+
+It is possible to issue a call to a service, which will respond with dummy data.
              
 ## Roadmap
 
@@ -20,25 +24,20 @@ Very much under initial development!
 
 ## Using the project
 
-After a fresh checkout or after the `openapi.yaml` specification has changes, the `api` and the `model` files 
-must be generated. This is done by calling 
+A war file is generated with the standard 
 ```
 mvn package
 ```
+use `conf/ocp/like-a-look.xml` as template for the setup.
 
 Jetty is enabled, so testing the webservice can be done by running
-Start a Jetty web server with the application:
 ```
 mvn jetty:run
 ```
 
-The default port is 8080 and the default Hello World service can be accessed at
-<http://localhost:8080/java-webapp/api/hello>
-where "java-webapp" is your artifactID from above.
+The default port is 8080 and the ping can be accessed at
+<http://localhost:8080/like-a-look/api/ping>
 
-The Swagger-UI is available at <http://localhost:8080/java-webapp/api/api-docs?url=openapi.json>
-which is the location that <http://localhost:8080/java-webapp/api/> will redirect to.
+The Swagger-UI is available at <http://localhost:8080/like-a-look/api/>.
 
-## Developer information
-
-See the file [DEVELOPER.md](DEVELOPER.md).
+See the file [DEVELOPER.md](DEVELOPER.md) if you are a developer and want to work with this.
