@@ -11,7 +11,7 @@
     <title>Title</title>
 </head>
 <body>
-Link to <a href="api/services/">services</a>
+Link to <a href="api/">services</a>
 This is the right file
 </body>
 </html>
