@@ -3,7 +3,7 @@ info:
   version: "${project.version}"
   title: "${project.name}"
   description: |
-    ${project.description}
+    Experimental service for finding similar images in collections.
   license:
     name: "${license.name}"
     url: "${license.url}"
@@ -29,7 +29,7 @@ paths:
                 - image
               properties:
                 image:
-                  description: 'The image to use as source for the similarity search. JPEG only'
+                  description: 'The image to use as source for the similarity search'
                   type: string
                   format: binary
                 collection:
@@ -63,7 +63,7 @@ paths:
         '200':
           description: OK
           content:
-            text/plain:
+            application/json:
               schema:
                 type: array
                 items:
