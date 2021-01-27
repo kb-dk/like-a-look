@@ -14,19 +14,25 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Providers;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
+// TODO: Accept JPEG & PNG, directly or base64. See teams for sample of base64
 /**
  * The real implementation. Copy changes after openapi.yaml-updates from LikeALookAPiServiceImpl.
  */
@@ -158,6 +164,17 @@ public class LikeALook implements LikeALookApi {
             log.error("ServiceException(HTTP 500):", e); //You probably want to log this.
             return new InternalServiceException(e.getMessage());
         }
+    }
+
+    @Override
+    @GET
+    @Path("/")
+    public Response redirect(@Context MessageContext request){
+        String path = request.get("org.apache.cxf.message.Message.PATH_INFO").toString();
+        if (path != null && !path.endsWith("/")){
+            path = path + "/";
+        }
+        return Response.temporaryRedirect(URI.create("api-docs?url=" + path + "openapi.yaml")).build();
     }
 
 }
