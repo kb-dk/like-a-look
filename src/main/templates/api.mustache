@@ -80,6 +80,9 @@ public interface {{classname}}  {
 
     /**
     * This method just redirects gets to WEBAPP/api to the swagger UI /WEBAPP/api/api-docs?url=WEBAPP/api/openapi.yaml
+    * Note that an URL without the domain is served. This is done to support proxy servers and is valid according to
+    * https://tools.ietf.org/html/rfc7231#section-7.1.2
+    * TODO: Implement this
     */
     @GET
     @Path("/")
