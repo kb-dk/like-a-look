@@ -1,6 +1,7 @@
 package dk.kb.likealook.api.impl;
 
 import dk.kb.likealook.api.LikeALookApi;
+import dk.kb.likealook.model.BoxDto;
 import dk.kb.likealook.model.WholeImageDto;
 import dk.kb.webservice.exception.InternalServiceException;
 import dk.kb.webservice.exception.InvalidArgumentServiceException;
@@ -24,6 +25,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Providers;
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +35,9 @@ import java.util.Locale;
 import java.util.Random;
 
 // TODO: Accept JPEG & PNG, directly or base64. See teams for sample of base64
+// TODO: Consider using https://github.com/tzolov/mtcnn-java for face detection
+// TODO: Inspiraton: https://medium.com/clique-org/how-to-create-a-face-recognition-model-using-facenet-keras-fd65c0b092f1
+// TODO: Inspiration: https://machinelearningmastery.com/how-to-develop-a-face-recognition-system-using-facenet-in-keras-and-an-svm-classifier/
 /**
  * The real implementation. Copy changes after openapi.yaml-updates from LikeALookAPiServiceImpl.
  */
@@ -132,6 +137,41 @@ public class LikeALook implements LikeALookApi {
         }
         return response;
     }
+
+    /**
+     * Detect human faces in the uploaded image
+     *
+     * @param imageDetail: The image to use as source for face detection
+     *
+     * @param method: The method used for face detecton
+     *
+     * @param sourceID: Optional ID for the image, used for tracking &amp; debugging
+     *
+     * @return <ul>
+      *   <li>code = 200, message = "An array of boxes for the detected faces", response = BoxDto.class, responseContainer = "List"</li>
+      *   </ul>
+      * @throws ServiceException when other http codes should be returned
+      *
+      * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
+     */
+    @Override
+    public List<BoxDto> detectFaces(Attachment imageDetail, String method, String sourceID) throws ServiceException {
+        // Test with
+        // curl -X POST "http://localhost:8080/like-a-look/api/detect/faces" -H  "accept: application/json" -H  "Content-Type: multipart/form-data" -F "method=HaarCascade" -F "sourceID=" -F "image=@pexels-andrea-piacquadio-3812743.jpg;type=image/jpeg"
+
+        sourceID = sourceID != null ? sourceID :
+                imageDetail.getContentDisposition() != null ? imageDetail.getContentDisposition().getFilename() :
+                        null;
+        FaceHandler.METHOD realMethod = method == null || method.isEmpty() ? FaceHandler.METHOD.getDefault() :
+                FaceHandler.METHOD.valueOf(method.toLowerCase(Locale.ROOT));
+
+        try {
+            return FaceHandler.detectFaces(imageDetail.getDataHandler().getInputStream(), realMethod, sourceID);
+        } catch (IOException e) {
+            throw new InvalidArgumentServiceException("Unable to process input stream for detectFaces call", e);
+        }
+    }
+
 
     /**
      * Ping the server to check if the server is reachable.

@@ -69,6 +69,44 @@ paths:
                 items:
                   type: string
 
+  /detect/faces:
+    post:
+      tags:
+        - "${project.name}"
+      summary: 'Detect human faces in the uploaded image'
+      operationId: detectFaces
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - image
+              properties:
+                image:
+                  description: 'The image to use as source for face detection'
+                  type: string
+                  format: binary
+                method:
+                  description: 'The method used for face detecton'
+                  type: string
+                  enum: [HaarCascade]
+                  default: HaarCascade
+                  example: HaarCascade
+                sourceID:
+                  description: 'Optional ID for the image, used for tracking & debugging'
+                  type: string
+
+      responses:
+        '200':
+          description: 'An array of boxes for the detected faces'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Box'
+
   /ping:
     get:
       tags:
@@ -116,6 +154,34 @@ components:
         url:
           type: string
           description: 'The URL for the similar image'
+
+    Box:
+      type: object
+      required:
+        - x
+        - y
+        - width
+        - height
+      properties:
+        sourceID:
+          type: string
+          description: 'The ID for the source image, if one was provided by the caller'
+        faceID:
+          type: integer
+          description: 'The ID for the detected face. IDs start at 0 and are incremented by 1 for each found face'
+        # TODO: The probability that it is really a face
+        x:
+          type: integer
+          description: 'The x coordinate for the bounding box for the face'
+        y:
+          type: integer
+          description: 'The y coordinate for the boundng box for the face. The top of the image is 0'
+        width:
+          type: integer
+          description: 'The width of the bounding box for the face'
+        height:
+          type: integer
+          description: 'The height of the bounding box for the face'
 
     Error:
       type: object

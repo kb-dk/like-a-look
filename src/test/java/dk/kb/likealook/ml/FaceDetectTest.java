@@ -15,8 +15,8 @@
 package dk.kb.likealook.ml;
 
 import dk.kb.util.Resolver;
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.logging.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,7 +37,7 @@ import java.util.List;
  *
  */
 public class FaceDetectTest {
-    private static Log log = LogFactory.getLog(FaceDetectTest.class);
+    private static final Logger log = LoggerFactory.getLogger(FaceDetectTest.class);
 
     // https://stackoverflow.com/questions/51994659/java-face-detection-with-openimaj
     @Test
@@ -45,8 +45,14 @@ public class FaceDetectTest {
         File facesFile = new File(Resolver.resolveURL("pexels-andrea-piacquadio-3812743.jpg").getFile());
         final MBFImage image = ImageUtilities.readMBF(facesFile);
 
+        long createStart = System.currentTimeMillis();
         FaceDetector<DetectedFace, FImage> fd = new HaarCascadeDetector(200);
+        log.info("Create: " + (System.currentTimeMillis()-createStart));
+
+        long detectS = System.currentTimeMillis();
         List<DetectedFace> faces = fd.detectFaces(Transforms.calculateIntensity(image));
+        log.info("Detect " + (System.currentTimeMillis()-detectS));
+
 //        System.out.println("# Found " + faces.size() + " faces, one per line.");
 //        System.out.println("# <x>, <y>, <width>, <height>");
 
