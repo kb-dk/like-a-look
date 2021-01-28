@@ -75,6 +75,7 @@ paths:
         - "${project.name}"
       summary: 'Detect human faces in the uploaded image'
       operationId: detectFaces
+      x-streamingOutput: true # If enabled the method will return StreamingOutput.
       requestBody:
         content:
           multipart/form-data:
@@ -96,16 +97,26 @@ paths:
                 sourceID:
                   description: 'Optional ID for the image, used for tracking & debugging'
                   type: string
+                response:
+                  description: 'The response format'
+                  type: string
+                  enum: [json, jpeg]
+                  default: json
+                  example: json
 
       responses:
         '200':
-          description: 'An array of boxes for the detected faces'
+          description: 'The detected faces either as a JSON structure with coordinates or the input image with overlays'
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Box'
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
 
   /ping:
     get:

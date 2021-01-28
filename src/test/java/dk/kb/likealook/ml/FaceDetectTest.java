@@ -15,8 +15,10 @@
 package dk.kb.likealook.ml;
 
 import dk.kb.util.Resolver;
+import org.junit.jupiter.api.Disabled;
 import org.openimaj.image.DisplayUtilities;
 import org.openimaj.image.colour.RGBColour;
+import org.openimaj.image.typography.hershey.HersheyFont;
 import org.openimaj.math.geometry.shape.Rectangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,5 +72,36 @@ public class FaceDetectTest {
 
        // DisplayUtilities.display(image);
         //Thread.sleep(50000);
+    }
+
+    @Disabled
+    public void testPaintFace() throws IOException, InterruptedException {
+        File facesFile = new File(Resolver.resolveURL("pexels-andrea-piacquadio-3812743.jpg").getFile());
+        final MBFImage image = ImageUtilities.readMBF(facesFile);
+
+        long createStart = System.currentTimeMillis();
+        FaceDetector<DetectedFace, FImage> fd = new HaarCascadeDetector(200);
+        log.info("Create: " + (System.currentTimeMillis()-createStart));
+
+        long detectS = System.currentTimeMillis();
+        List<DetectedFace> faces = fd.detectFaces(Transforms.calculateIntensity(image));
+        log.info("Detect " + (System.currentTimeMillis()-detectS));
+
+//        System.out.println("# Found " + faces.size() + " faces, one per line.");
+//        System.out.println("# <x>, <y>, <width>, <height>");
+
+        for (DetectedFace face : faces) {
+            Rectangle bounds = face.getBounds();
+            image.drawShape(bounds, 2, RGBColour.RED);
+            image.drawText("Foo", (int)bounds.x + 3, (int)(bounds.y + 23),
+                           HersheyFont.FUTURA_MEDIUM, 20, RGBColour.RED);
+
+             log.info(bounds.x + ";" + bounds.y + ";" + bounds.width + ";" + bounds.height);
+        }
+
+        assertEquals(23, faces.size(), "There should be the expected number of detected faces using OpenIMAJ");
+
+        DisplayUtilities.display(image);
+        Thread.sleep(5000);
     }
 }

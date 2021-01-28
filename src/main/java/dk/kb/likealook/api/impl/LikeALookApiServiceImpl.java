@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.ContextResolver;
@@ -107,7 +108,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         
         try{ 
             List<String> response = new ArrayList<>();
-        response.add("Yi65n");
+        response.add("VBzA4");
         return response;
         } catch (Exception e){
             throw handleException(e);
@@ -124,29 +125,23 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
      * 
      * @param sourceID: Optional ID for the image, used for tracking &amp; debugging
      * 
+     * @param response: The response format
+     * 
      * @return <ul>
-      *   <li>code = 200, message = "An array of boxes for the detected faces", response = BoxDto.class, responseContainer = "List"</li>
+      *   <li>code = 200, message = "The detected faces either as a JSON structure with coordinates or the input image with overlays", response = BoxDto.class, responseContainer = "List"</li>
       *   </ul>
       * @throws ServiceException when other http codes should be returned
       *
       * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
      */
     @Override
-    public List<BoxDto> detectFaces( Attachment imageDetail, String method, String sourceID) throws ServiceException {
+    public javax.ws.rs.core.StreamingOutput detectFaces( Attachment imageDetail, String method, String sourceID, String response) throws ServiceException {
         // TODO: Implement...
     
         
         try{ 
-            List<BoxDto> response = new ArrayList<>();
-        BoxDto item = new BoxDto();
-        item.setSourceID("p9YJY");
-        item.setFaceID(922837758);
-        item.setX(-1639414976);
-        item.setY(-502525419);
-        item.setWidth(441250147);
-        item.setHeight(1447915061);
-        response.add(item);
-        return response;
+            httpServletResponse.setHeader("Content-Disposition", "inline; filename=\"filename.ext\"");
+            return output -> output.write("Magic".getBytes(java.nio.charset.StandardCharsets.UTF_8));
         } catch (Exception e){
             throw handleException(e);
         }
@@ -179,10 +174,10 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<WholeImageDto> response = new ArrayList<>();
         WholeImageDto item = new WholeImageDto();
-        item.setSourceID("FAUWOHF09");
-        item.setImageID("HI5vk");
-        item.setDistance(-7909061357640345551.67019122986335743D);
-        item.setUrl("LhfTdK");
+        item.setSourceID("tiB992");
+        item.setImageID("aHj1zkq");
+        item.setDistance(2603256091072707817.4700407413077392D);
+        item.setUrl("m7eWj60T0T9U2");
         response.add(item);
         return response;
         } catch (Exception e){
@@ -209,7 +204,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
     
         
         try{ 
-            String response = "KjGqBj";
+            String response = "ixGP2";
         return response;
         } catch (Exception e){
             throw handleException(e);

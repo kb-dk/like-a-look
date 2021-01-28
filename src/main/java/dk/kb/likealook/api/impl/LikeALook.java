@@ -1,11 +1,16 @@
 package dk.kb.likealook.api.impl;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.likealook.api.LikeALookApi;
 import dk.kb.likealook.model.BoxDto;
 import dk.kb.likealook.model.WholeImageDto;
+import dk.kb.likealook.util.JSONArrayStream;
 import dk.kb.webservice.exception.InternalServiceException;
 import dk.kb.webservice.exception.InvalidArgumentServiceException;
 import dk.kb.webservice.exception.ServiceException;
+import org.apache.commons.io.IOUtils;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.slf4j.Logger;
@@ -22,13 +27,15 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Providers;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -155,24 +162,39 @@ public class LikeALook implements LikeALookApi {
       * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
      */
     @Override
-    public List<BoxDto> detectFaces(Attachment imageDetail, String method, String sourceID) throws ServiceException {
-        // Test with
-        // curl -X POST "http://localhost:8080/like-a-look/api/detect/faces" -H  "accept: application/json" -H  "Content-Type: multipart/form-data" -F "method=HaarCascade" -F "sourceID=" -F "image=@pexels-andrea-piacquadio-3812743.jpg;type=image/jpeg"
-
+    public javax.ws.rs.core.StreamingOutput detectFaces( Attachment imageDetail, String method, String sourceID, String response) throws ServiceException {
         sourceID = sourceID != null ? sourceID :
                 imageDetail.getContentDisposition() != null ? imageDetail.getContentDisposition().getFilename() :
                         null;
-        FaceHandler.METHOD realMethod = method == null || method.isEmpty() ? FaceHandler.METHOD.getDefault() :
-                FaceHandler.METHOD.valueOf(method.toLowerCase(Locale.ROOT));
+        FaceHandler.METHOD realMethod = FaceHandler.METHOD.valueOfWithDefault(method);
+        FACE_RESPONSE realResponse = FACE_RESPONSE.valueOfWithDefault(response);
 
         try {
-            return FaceHandler.detectFaces(imageDetail.getDataHandler().getInputStream(), realMethod, sourceID);
-        } catch (IOException e) {
-            throw new InvalidArgumentServiceException("Unable to process input stream for detectFaces call", e);
+            switch (realResponse) {
+                case jpeg: {
+                    byte[] faceImage;
+                    faceImage = FaceHandler.faceOverlay(imageDetail.getDataHandler().getInputStream(), realMethod, sourceID);
+                    return (out) -> IOUtils.copy(new ByteArrayInputStream(faceImage), out);
+                }
+                case json: {
+                    return new JSONArrayStream(FaceHandler.detectFaces(
+                            imageDetail.getDataHandler().getInputStream(), realMethod, sourceID));
+                }
+                default: throw new InvalidArgumentServiceException("The method '" + method + "' is not supported");
+            }
+        } catch (Exception e) {
+            throw handleException(e);
         }
     }
 
+    public enum FACE_RESPONSE {json, jpeg;
 
+        public static FACE_RESPONSE valueOfWithDefault(String response) {
+            return response == null || response.isEmpty() ? json : valueOf(response);
+        }
+    }
+
+    
     /**
      * Ping the server to check if the server is reachable.
      * 
