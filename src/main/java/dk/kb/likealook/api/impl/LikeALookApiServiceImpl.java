@@ -2,6 +2,7 @@ package dk.kb.likealook.api.impl;
 
 import dk.kb.likealook.api.*;
 import java.util.ArrayList;
+import dk.kb.likealook.model.BoxDto;
 import dk.kb.likealook.model.ErrorDto;
 import java.io.File;
 import java.util.List;
@@ -45,7 +46,7 @@ import io.swagger.annotations.Api;
 /**
  * like-a-look
  *
- * <p>This pom can be inherited by projects wishing to integrate to the SBForge development platform. 
+ * <p>Experimental service for finding similar images in collections. 
  *
  */
 public class LikeALookApiServiceImpl implements LikeALookApi {
@@ -106,7 +107,45 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         
         try{ 
             List<String> response = new ArrayList<>();
-        response.add("aFOMV");
+        response.add("Yi65n");
+        return response;
+        } catch (Exception e){
+            throw handleException(e);
+        }
+    
+    }
+
+    /**
+     * Detect human faces in the uploaded image
+     * 
+     * @param image: The image to use as source for face detection
+     * 
+     * @param method: The method used for face detecton
+     * 
+     * @param sourceID: Optional ID for the image, used for tracking &amp; debugging
+     * 
+     * @return <ul>
+      *   <li>code = 200, message = "An array of boxes for the detected faces", response = BoxDto.class, responseContainer = "List"</li>
+      *   </ul>
+      * @throws ServiceException when other http codes should be returned
+      *
+      * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
+     */
+    @Override
+    public List<BoxDto> detectFaces( Attachment imageDetail, String method, String sourceID) throws ServiceException {
+        // TODO: Implement...
+    
+        
+        try{ 
+            List<BoxDto> response = new ArrayList<>();
+        BoxDto item = new BoxDto();
+        item.setSourceID("p9YJY");
+        item.setFaceID(922837758);
+        item.setX(-1639414976);
+        item.setY(-502525419);
+        item.setWidth(441250147);
+        item.setHeight(1447915061);
+        response.add(item);
         return response;
         } catch (Exception e){
             throw handleException(e);
@@ -117,7 +156,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
     /**
      * Request images similar to the uploaded image
      * 
-     * @param image: The image to use as source for the similarity search. JPEG only
+     * @param image: The image to use as source for the similarity search
      * 
      * @param collection: The collection to search for similar images. If none is specified, the default collection will be used
      * 
@@ -140,10 +179,10 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<WholeImageDto> response = new ArrayList<>();
         WholeImageDto item = new WholeImageDto();
-        item.setSourceID("pz2x2t");
-        item.setImageID("Tz9kRmd");
-        item.setDistance(-4546717818912133057.83950738184624565D);
-        item.setUrl("bNuCy329");
+        item.setSourceID("FAUWOHF09");
+        item.setImageID("HI5vk");
+        item.setDistance(-7909061357640345551.67019122986335743D);
+        item.setUrl("LhfTdK");
         response.add(item);
         return response;
         } catch (Exception e){
@@ -170,7 +209,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
     
         
         try{ 
-            String response = "lWSZ65";
+            String response = "KjGqBj";
         return response;
         } catch (Exception e){
             throw handleException(e);
