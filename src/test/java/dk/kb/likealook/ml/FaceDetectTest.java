@@ -15,6 +15,9 @@
 package dk.kb.likealook.ml;
 
 import dk.kb.util.Resolver;
+import org.openimaj.image.DisplayUtilities;
+import org.openimaj.image.colour.RGBColour;
+import org.openimaj.math.geometry.shape.Rectangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.junit.jupiter.api.Test;
@@ -56,16 +59,16 @@ public class FaceDetectTest {
 //        System.out.println("# Found " + faces.size() + " faces, one per line.");
 //        System.out.println("# <x>, <y>, <width>, <height>");
 
-/*        for (DetectedFace face : faces) {
+        for (DetectedFace face : faces) {
             Rectangle bounds = face.getBounds();
-            image.drawShape(face.getBounds(), RGBColour.RED);
+//            image.drawShape(face.getBounds(), RGBColour.RED);
 
-             System.out.println(bounds.x + ";" + bounds.y + ";" + bounds.width + ";" + bounds.height);
-        }*/
+             log.info(bounds.x + ";" + bounds.y + ";" + bounds.width + ";" + bounds.height);
+        }
 
         assertEquals(23, faces.size(), "There should be the expected number of detected faces using OpenIMAJ");
 
-        //DisplayUtilities.display(image);
-        //Thread.sleep(5000);
+       // DisplayUtilities.display(image);
+        //Thread.sleep(50000);
     }
 }

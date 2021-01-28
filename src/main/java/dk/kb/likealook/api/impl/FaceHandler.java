@@ -73,6 +73,7 @@ public class FaceHandler {
     private static BoxDto faceToBox(DetectedFace detectedFace, String sourceID, AtomicInteger faceID) {
         BoxDto box = new BoxDto();
         box.sourceID(sourceID).faceID(faceID.getAndIncrement());
+        box.confidence(detectedFace.getConfidence());
         Rectangle dBox = detectedFace.getBounds().calculateRegularBoundingBox();
         box.x((int) dBox.x);
         box.y((int) dBox.y);
