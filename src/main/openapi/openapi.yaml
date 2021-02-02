@@ -69,6 +69,50 @@ paths:
                 items:
                   type: string
 
+  /detect/subjects:
+    post:
+      tags:
+        - "${project.name}"
+      summary: 'Detect what the subject of the image, e.g. a picture with a cat on a couch should return "cat" and "couch"'
+      operationId: detectSubjects
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - image
+              properties:
+                image:
+                  description: 'The image to use as source for subject detection'
+                  type: string
+                  format: binary
+                method:
+                  description: 'The method used for subject detection.
+                                "Inception3" is Tensorflow Inception 3 trained on ImageNet data'
+                  type: string
+                  enum: [Inception3]
+                  default: Inception3
+                  example: Inception3
+                sourceID:
+                  description: 'Optional ID for the image, used for tracking & debugging'
+                  type: string
+                maxMatches:
+                  description: 'The maximum number of detected subjects to return'
+                  type: integer
+                  default: 10
+
+      responses:
+        '200':
+          description: 'The detected subjects together with the calculated confidence of correct detection'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subject'
+
+
   /detect/faces:
     post:
       tags:
@@ -89,7 +133,7 @@ paths:
                   type: string
                   format: binary
                 method:
-                  description: 'The method used for face detecton'
+                  description: 'The method used for face detection'
                   type: string
                   enum: [HaarCascade]
                   default: HaarCascade
@@ -197,6 +241,22 @@ components:
         height:
           type: integer
           description: 'The height of the bounding box for the face'
+
+    Subject:
+      type: object
+      required:
+        - subject
+      properties:
+        subject:
+          type: string
+          description: 'The detected subject in human readable form'
+        sourceID:
+          type: string
+          description: 'The ID for the source image, if one was provided by the caller'
+        confidence:
+          type: number
+          format: float
+          description: 'The confidence for correct subject detection. Higher numbers are better'
 
     Error:
       type: object

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.likealook.api.LikeALookApi;
 import dk.kb.likealook.model.BoxDto;
+import dk.kb.likealook.model.SubjectDto;
 import dk.kb.likealook.model.WholeImageDto;
 import dk.kb.likealook.util.JSONArrayStream;
 import dk.kb.webservice.exception.InternalServiceException;
@@ -188,13 +189,46 @@ public class LikeALook implements LikeALookApi {
     }
 
     public enum FACE_RESPONSE {json, jpeg;
-
         public static FACE_RESPONSE valueOfWithDefault(String response) {
             return response == null || response.isEmpty() ? json : valueOf(response);
         }
     }
 
-    
+    /**
+     * Detect what the subject of the image, e.g. a picture with a cat on a couch should return \&quot;cat\&quot; and \&quot;couch\&quot;
+     *
+     * @param imageDetail: The image to use as source for subject detection
+     *
+     * @param method: The method used for subject detection. \\\&quot;Inception3\\\&quot; is Tensorflow Inception 3 trained on ImageNet data
+     *
+     * @param sourceID: Optional ID for the image, used for tracking &amp; debugging
+     *
+     * @param maxMatches: The maximum number of detected subjects to return
+     *
+     * @return <ul>
+      *   <li>code = 200, message = "The detected subjects together with the calculated confidence of correct detection", response = SubjectDto.class, responseContainer = "List"</li>
+      *   </ul>
+      * @throws ServiceException when other http codes should be returned
+      *
+      * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
+     */
+    @Override
+    public List<SubjectDto> detectSubjects( Attachment imageDetail, String method, String sourceID, Integer maxMatches)
+            throws ServiceException {
+        sourceID = sourceID != null ? sourceID :
+                imageDetail.getContentDisposition() != null ? imageDetail.getContentDisposition().getFilename() :
+                        null;
+        SubjectHandler.METHOD realMethod = SubjectHandler.METHOD.valueOfWithDefault(method);
+        maxMatches = maxMatches == null ? 10 : maxMatches;
+
+        try {
+            return SubjectHandler.detectSubjects(
+                    imageDetail.getDataHandler().getInputStream(), realMethod, sourceID, maxMatches);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     /**
      * Ping the server to check if the server is reachable.
      * 

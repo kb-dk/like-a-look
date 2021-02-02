@@ -7,6 +7,7 @@ import dk.kb.likealook.model.ErrorDto;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import dk.kb.likealook.model.SubjectDto;
 import dk.kb.likealook.model.WholeImageDto;
 
 import dk.kb.webservice.exception.ServiceException;
@@ -108,7 +109,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         
         try{ 
             List<String> response = new ArrayList<>();
-        response.add("VBzA4");
+        response.add("CbN06");
         return response;
         } catch (Exception e){
             throw handleException(e);
@@ -121,7 +122,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
      * 
      * @param image: The image to use as source for face detection
      * 
-     * @param method: The method used for face detecton
+     * @param method: The method used for face detection
      * 
      * @param sourceID: Optional ID for the image, used for tracking &amp; debugging
      * 
@@ -142,6 +143,43 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             httpServletResponse.setHeader("Content-Disposition", "inline; filename=\"filename.ext\"");
             return output -> output.write("Magic".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        } catch (Exception e){
+            throw handleException(e);
+        }
+    
+    }
+
+    /**
+     * Detect what the subject of the image, e.g. a picture with a cat on a couch should return \&quot;cat\&quot; and \&quot;couch\&quot;
+     * 
+     * @param image: The image to use as source for subject detection
+     * 
+     * @param method: The method used for subject detection. \\\&quot;Inception3\\\&quot; is Tensorflow Inception 3 trained on ImageNet data
+     * 
+     * @param sourceID: Optional ID for the image, used for tracking &amp; debugging
+     * 
+     * @param maxMatches: The maximum number of detected subjects to return
+     * 
+     * @return <ul>
+      *   <li>code = 200, message = "The detected subjects together with the calculated confidence of correct detection", response = SubjectDto.class, responseContainer = "List"</li>
+      *   </ul>
+      * @throws ServiceException when other http codes should be returned
+      *
+      * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
+     */
+    @Override
+    public List<SubjectDto> detectSubjects( Attachment imageDetail, String method, String sourceID, Integer maxMatches) throws ServiceException {
+        // TODO: Implement...
+    
+        
+        try{ 
+            List<SubjectDto> response = new ArrayList<>();
+        SubjectDto item = new SubjectDto();
+        item.setSubject("r58A6Y");
+        item.setSourceID("yhhUe");
+        item.setConfidence(3.14437e+38F);
+        response.add(item);
+        return response;
         } catch (Exception e){
             throw handleException(e);
         }
@@ -174,10 +212,10 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<WholeImageDto> response = new ArrayList<>();
         WholeImageDto item = new WholeImageDto();
-        item.setSourceID("tiB992");
-        item.setImageID("aHj1zkq");
-        item.setDistance(2603256091072707817.4700407413077392D);
-        item.setUrl("m7eWj60T0T9U2");
+        item.setSourceID("VeXvrBU4");
+        item.setImageID("aM586");
+        item.setDistance(5686763295989330673.949878620380891D);
+        item.setUrl("gH0wg");
         response.add(item);
         return response;
         } catch (Exception e){
@@ -204,7 +242,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
     
         
         try{ 
-            String response = "ixGP2";
+            String response = "M6833q9";
         return response;
         } catch (Exception e){
             throw handleException(e);

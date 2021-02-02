@@ -1,4 +1,11 @@
-config:
+likealook:
+  detect:
+    subject:
+      # graph & label-files must be fetched and stored on the local machine.
+      # You probably want to define these in like-a-look-environment.yaml
+      inception3:
+        graph: '/<localpath>/models/v3.0/tensorflow_inception_graph.pb'
+        labels: '/<localpath>/models/v3.0/imagenet_comp_graph_label_strings.txt'
   helloLines:
     - Hello
     - World

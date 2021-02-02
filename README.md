@@ -4,19 +4,8 @@ Finding similar images using machine learning
 
 ## Current status
 
-Very much under initial development!
-
-It is possible to issue a call to a service, which will respond with dummy data.
+Services for detecting faces and guessing subject of images has been added.
              
-## Roadmap
-
- * First version is intended to be your basic "Generate fingerprints from images using ImageNet,
-   then find similary images using these fingerprints".
- * Second version aims for more flexibility in the workflow by preprocessing the images (might be used for 
-   the internal project DANER).
- * Third version is about finding details on images: Mark an area on an image and find other images where part
-   of the image is similar to the marked area.
-
 ## Requirements
 
  * Java 11
