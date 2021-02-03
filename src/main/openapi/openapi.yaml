@@ -162,6 +162,43 @@ paths:
                 type: string
                 format: binary
 
+  /resource/{id}:
+    get:
+      tags:
+        - "${project.name}"
+      summary: 'Deliver a static resource (typically an image)'
+      operationId: getResource
+      x-streamingOutput: true
+      parameters:
+        - name: id
+          in: path
+          description: 'The ID of the resource, e.g. "image_34323.jpg". This might be prefixed with the resource
+                        group that the resource belongs to, e.g. "full/image_34323.jpg".'
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: 'The requested resource'
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: 'Invalid Argument'
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: 'File Not Found'
+          content:
+            text/plain:
+              schema:
+                type: string
+
   /ping:
     get:
       tags:

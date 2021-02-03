@@ -6,8 +6,10 @@ likealook:
       inception3:
         graph: '/<localpath>/models/v3.0/tensorflow_inception_graph.pb'
         labels: '/<localpath>/models/v3.0/imagenet_comp_graph_label_strings.txt'
-  helloLines:
-    - Hello
-    - World
-    - from
-    - java-template
+  resources:
+    # Roots are on the local file system. Only files directly under the roots are delivered when
+    # a resource is requested.
+    roots:
+      # This is just a sample. The real config should probably be defined in like-a-look-environment.yaml
+      - name: 'fullsize'
+        path: 'somefilepath/'

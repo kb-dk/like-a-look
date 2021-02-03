@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.io.IOUtils;
 import org.tensorflow.DataType;
@@ -99,7 +100,7 @@ public class LabelImageTest {
                 final long[] rshape = result.shape();
                 if (result.numDimensions() != 2 || rshape[0] != 1) {
                     throw new RuntimeException(
-                            String.format(
+                            String.format(Locale.ENGLISH,
                                     "Expected model to produce a [1 N] shaped tensor where N is the number of labels, instead it produced one with shape %s",
                                     Arrays.toString(rshape)));
                 }

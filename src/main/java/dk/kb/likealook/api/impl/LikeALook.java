@@ -22,6 +22,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -35,6 +36,7 @@ import javax.ws.rs.ext.Providers;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -224,6 +226,34 @@ public class LikeALook implements LikeALookApi {
         try {
             return SubjectHandler.detectSubjects(
                     imageDetail.getDataHandler().getInputStream(), realMethod, sourceID, maxMatches);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    /**
+     * Deliver a static resource (typically an image)
+     *
+     * @param id: The ID of the resource, e.g. \&quot;image_34323.jpg\&quot;. This might be prefixed with the resource group that the resource belongs to, e.g. \&quot;full/image_34323.jpg\&quot;.
+     *
+     * @return <ul>
+      *   <li>code = 200, message = "The requested resource", response = File.class</li>
+      *   <li>code = 400, message = "Invalid Argument", response = String.class</li>
+      *   <li>code = 404, message = "File Not Found", response = String.class</li>
+      *   </ul>
+      * @throws ServiceException when other http codes should be returned
+      *
+      * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
+     */
+    @Override
+    public javax.ws.rs.core.StreamingOutput getResource(String id) throws ServiceException {
+        try {
+            InputStream resource = ResourceHandler.getResource(id);
+            if (resource == null) {
+                throw new NotFoundException("The resource with id '" + id + "' could not be located");
+            }
+            httpServletResponse.setHeader("Content-Disposition", "inline; filename=\"" + id + "\"");
+            return (out) -> IOUtils.copy(resource, out);
         } catch (Exception e) {
             throw handleException(e);
         }
