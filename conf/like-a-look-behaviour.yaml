@@ -3,6 +3,8 @@ likealook:
     subject:
       # graph & label-files must be fetched and stored on the local machine.
       # You probably want to define these in like-a-look-environment.yaml
+      # A Tensorflow pre-trained model can be downloaded at
+      # https://storage.googleapis.com/download.tensorflow.org/models/inception_v3_2016_08_28_frozen.pb.tar.gz
       inception3:
         graph: '/<localpath>/models/v3.0/tensorflow_inception_graph.pb'
         labels: '/<localpath>/models/v3.0/imagenet_comp_graph_label_strings.txt'
