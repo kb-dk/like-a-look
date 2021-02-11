@@ -55,7 +55,6 @@ public class SubjectHandler implements Closeable {
         }
     }
 
-
     private byte[] graphDef;
     private List<String> labels;
     private Graph graph;
