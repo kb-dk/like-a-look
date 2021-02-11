@@ -7,6 +7,7 @@
       Smile!
     </button>
   </div>
+  
 </template>
 
 <script>
@@ -138,7 +139,11 @@ export default {
       this.postImg(imgData, width, height);
       return canvas.toDataURL(); //image URL
     },
-
+    makeImageFromURL(imgURL) {
+      var img = Image();
+      img.src = imgURL;
+      return img;
+    },
     postImg(imgData, width, height) {
       var canvas = document.createElement("canvas");
       var ctx = canvas.getContext("2d");
@@ -149,7 +154,12 @@ export default {
         const formData = new FormData();
         formData.append("image", blob, "face_" + new Date().getTime());
         console.log(formData);
-        axios.post("/api/upload/", formData);
+        axios.post("/like-a-look/api/similar/", formData)
+            .then(function (faces) {
+              var img = new Image();
+              img.src = faces.data[0].url;
+              document.body.appendChild(img);
+            })
       });
     }
 

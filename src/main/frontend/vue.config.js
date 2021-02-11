@@ -6,10 +6,13 @@ module.exports = {
   devServer: {
     proxy: {
       "^/api/upload/": {
-        target: "http://labs.statsbiblioteket.dk/like-a-look/api/similar/",
+        target: "/like-a-look/api/similar/",
         pathRewrite: { "^/api/upload/": "" },
         changeOrigin: true
       }
     }
-  }
+  },
+  publicPath: process.env.NODE_ENV === 'production'
+    ? '/like-a-look/'
+    : '/'
 };
