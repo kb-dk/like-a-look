@@ -109,7 +109,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         
         try{ 
             List<String> response = new ArrayList<>();
-        response.add("u51VX");
+        response.add("JOt8zYCV");
         return response;
         } catch (Exception e){
             throw handleException(e);
@@ -175,9 +175,9 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<SubjectDto> response = new ArrayList<>();
         SubjectDto item = new SubjectDto();
-        item.setSubject("cwvc0");
-        item.setSourceID("C7094F");
-        item.setConfidence(1.95066e+38F);
+        item.setSubject("v2keT");
+        item.setSourceID("w67b2CG");
+        item.setConfidence(-1.16513e+38F);
         response.add(item);
         return response;
         } catch (Exception e){
@@ -212,10 +212,10 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<WholeImageDto> response = new ArrayList<>();
         WholeImageDto item = new WholeImageDto();
-        item.setSourceID("W2j2Sq");
-        item.setImageID("q1418pQ");
-        item.setDistance(-3988149461305958122.3047248138932119D);
-        item.setUrl("M2QB6");
+        item.setSourceID("cugOZ");
+        item.setImageID("XoTW6");
+        item.setDistance(-7448461789730203726.65936577374957409D);
+        item.setUrl("v2UnS0kwv0o");
         response.add(item);
         return response;
         } catch (Exception e){
@@ -272,7 +272,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
     
         
         try{ 
-            String response = "HZrgY";
+            String response = "JuEwGa";
         return response;
         } catch (Exception e){
             throw handleException(e);

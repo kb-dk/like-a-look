@@ -145,6 +145,7 @@ public class LikeALook implements LikeALookApi {
             item.setUrl(String.format(Locale.ROOT, "https://placekitten.com/g/%d/%d", 200+((i+1)/2), 300+(i/2)));
             response.add(item);
         }
+        enableCORS();
         return response;
     }
 
@@ -173,6 +174,7 @@ public class LikeALook implements LikeALookApi {
         FACE_RESPONSE realResponse = FACE_RESPONSE.valueOfWithDefault(response);
 
         try {
+            enableCORS();
             switch (realResponse) {
                 case jpeg: {
                     byte[] faceImage;
@@ -224,6 +226,7 @@ public class LikeALook implements LikeALookApi {
         maxMatches = maxMatches == null ? 10 : maxMatches;
 
         try {
+            enableCORS();
             return SubjectHandler.detectSubjects(
                     imageDetail.getDataHandler().getInputStream(), realMethod, sourceID, maxMatches);
         } catch (Exception e) {
@@ -259,14 +262,18 @@ public class LikeALook implements LikeALookApi {
                 System.out.println("Setting JPEG");
                 httpServletResponse.setHeader(HttpHeaders.CONTENT_TYPE, "image/jpeg");
             }
-            httpServletResponse.setHeader("Access-Control-Allow-Origin", "*");
-            // Access-Control-Allow-Methods: GET, POST
-            // Access-Control-Allow-Headers: Content-Type, api_key, Authorization
+            enableCORS();
             //httpServletResponse.setHeader("Content-Disposition", "inline; filename=\"" + id + "\"");
             return (out) -> IOUtils.copy(resource, out);
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    private void enableCORS() {
+        httpServletResponse.setHeader("Access-Control-Allow-Origin", "*");
+        httpServletResponse.setHeader("Access-Control-Allow-Methods", "GET, POST");
+        httpServletResponse.setHeader("Access-Control-Allow-Headers", "Content-Type, api_key, Authorization");
     }
 
     /**
@@ -283,6 +290,7 @@ public class LikeALook implements LikeALookApi {
      */
     @Override
     public String ping() throws ServiceException {
+        enableCORS();
         return "pong";
     }
 
