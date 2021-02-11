@@ -109,7 +109,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         
         try{ 
             List<String> response = new ArrayList<>();
-        response.add("rG5d3");
+        response.add("u51VX");
         return response;
         } catch (Exception e){
             throw handleException(e);
@@ -175,9 +175,9 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<SubjectDto> response = new ArrayList<>();
         SubjectDto item = new SubjectDto();
-        item.setSubject("HFfoL8l08");
-        item.setSourceID("LvrDjfU");
-        item.setConfidence(1.56511e+38F);
+        item.setSubject("cwvc0");
+        item.setSourceID("C7094F");
+        item.setConfidence(1.95066e+38F);
         response.add(item);
         return response;
         } catch (Exception e){
@@ -212,10 +212,10 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<WholeImageDto> response = new ArrayList<>();
         WholeImageDto item = new WholeImageDto();
-        item.setSourceID("WFH1bb");
-        item.setImageID("wa086");
-        item.setDistance(1042932669494590871.5561455106951807D);
-        item.setUrl("iR7kxL8");
+        item.setSourceID("W2j2Sq");
+        item.setImageID("q1418pQ");
+        item.setDistance(-3988149461305958122.3047248138932119D);
+        item.setUrl("M2QB6");
         response.add(item);
         return response;
         } catch (Exception e){
@@ -227,7 +227,9 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
     /**
      * Deliver a static resource (typically an image)
      * 
-     * @param id: The ID of the resource, e.g. \&quot;image_34323.jpg\&quot;. This might be prefixed with the resource group that the resource belongs to, e.g. \&quot;full/image_34323.jpg\&quot;.
+     * @param collection: The collection that the resource belongs to, e.g. \&quot;faces\&quot;.
+     * 
+     * @param id: The ID of the resource, e.g. \&quot;image_34323.jpg\&quot;.
      * 
      * @return <ul>
       *   <li>code = 200, message = "The requested resource", response = File.class</li>
@@ -239,7 +241,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
       * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
      */
     @Override
-    public javax.ws.rs.core.StreamingOutput getResource(String id) throws ServiceException {
+    public javax.ws.rs.core.StreamingOutput getResource(String collection, String id) throws ServiceException {
         // TODO: Implement...
     
         
@@ -270,7 +272,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
     
         
         try{ 
-            String response = "K1XeF4";
+            String response = "HZrgY";
         return response;
         } catch (Exception e){
             throw handleException(e);

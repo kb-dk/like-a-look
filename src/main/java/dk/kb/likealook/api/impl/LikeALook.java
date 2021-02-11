@@ -234,7 +234,9 @@ public class LikeALook implements LikeALookApi {
     /**
      * Deliver a static resource (typically an image)
      *
-     * @param id: The ID of the resource, e.g. \&quot;image_34323.jpg\&quot;. This might be prefixed with the resource group that the resource belongs to, e.g. \&quot;full/image_34323.jpg\&quot;.
+     * @param collection: The collection that the resource belongs to, e.g. \&quot;faces\&quot;.
+     *
+     * @param id: The ID of the resource, e.g. \&quot;image_34323.jpg\&quot;.
      *
      * @return <ul>
       *   <li>code = 200, message = "The requested resource", response = File.class</li>
@@ -246,13 +248,21 @@ public class LikeALook implements LikeALookApi {
       * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
      */
     @Override
-    public javax.ws.rs.core.StreamingOutput getResource(String id) throws ServiceException {
+    public javax.ws.rs.core.StreamingOutput getResource(String collection, String id) throws ServiceException {
         try {
-            InputStream resource = ResourceHandler.getResource(id);
+            InputStream resource = ResourceHandler.getResource(collection + "/" + id);
             if (resource == null) {
-                throw new NotFoundException("The resource with id '" + id + "' could not be located");
+                throw new NotFoundException("The resource from collection '" + collection + "' with id '" + id +
+                                            "' could not be located");
             }
-            httpServletResponse.setHeader("Content-Disposition", "inline; filename=\"" + id + "\"");
+            if (id.toLowerCase(Locale.ROOT).endsWith(".jpg") || id.toLowerCase(Locale.ROOT).endsWith(".jpeg")) {
+                System.out.println("Setting JPEG");
+                httpServletResponse.setHeader(HttpHeaders.CONTENT_TYPE, "image/jpeg");
+            }
+            httpServletResponse.setHeader("Access-Control-Allow-Origin", "*");
+            // Access-Control-Allow-Methods: GET, POST
+            // Access-Control-Allow-Headers: Content-Type, api_key, Authorization
+            //httpServletResponse.setHeader("Content-Disposition", "inline; filename=\"" + id + "\"");
             return (out) -> IOUtils.copy(resource, out);
         } catch (Exception e) {
             throw handleException(e);
