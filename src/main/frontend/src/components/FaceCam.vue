@@ -1,13 +1,30 @@
 <template>
   <div>
+    <comparison v-show="showConfirmation" @close="closeConfirmation">
+      <h4 slot="header" class="modal-title w-100">Look a like?</h4>
+      <div slot="body">
+        <div class="selfieSnap">
+          <div>Your pretty face</div>
+          <img :src="selfieImgSrc" />
+        </div>
+        <div class="lookALikeSnap">
+          <div>Someone else</div>
+          <img :src="lookLikeImgSrc" />
+        </div>
+      </div>
+    </comparison>
     <p>
       <center><canvas width="640" height="480"></canvas></center>
     </p>
-    <button class="" @click.prevent="takeSnapshot">
-      Smile!
+
+    <button
+      v-if="camInitialized"
+      class="btn btn-success"
+      @click.prevent="takeSnapshot"
+    >
+      Take Photo
     </button>
   </div>
-  
 </template>
 
 <script>
@@ -16,17 +33,27 @@ import { pico } from "../pico-assets/pico";
 import { getArcBounds } from "../utils/arcBoundsCalc";
 import { getPicoImg } from "../utils/imgHelper";
 import picoParams from "../pico-assets/picoParams";
-import axios from "axios";
+import { lookLikeService } from "../api/looklike-service";
+import Comparison from "./Comparison.vue";
 export default {
-  name: "DanerFaceCam",
+  name: "FaceCam",
+  components: {
+    Comparison
+  },
   data() {
     return {
       canvasElement: null,
       faceBoundingBox: {},
+      showConfirmation: false,
+      selfieImgSrc: "",
+      lookLikeImgSrc: "",
+      camInitialized: false,
+      borderCompensate: 7, //compensate for red border
       cascadeUrl:
         "https://raw.githubusercontent.com/nenadmarkus/pico/c2e81f9d23cc11d1a612fd21e4f9de0921a5d0d9/rnt/cascades/facefinder"
     };
   },
+
   mounted() {
     //get the drawing context on the canvas
     this.canvasElement = document
@@ -35,6 +62,10 @@ export default {
     this.initilizeFaceDetection();
   },
   methods: {
+    closeConfirmation() {
+      this.showConfirmation = false;
+    },
+
     initilizeFaceDetection() {
       fetch(this.cascadeUrl).then(response => {
         let facefinder_classify_region = () => {
@@ -43,13 +74,10 @@ export default {
         response.arrayBuffer().then(buffer => {
           var bytes = new Int8Array(buffer);
           facefinder_classify_region = pico.unpack_cascade(bytes);
-          console.log("* facefinder loaded");
           this.instantiateCameraHandling(facefinder_classify_region);
+          this.camInitialized = true;
         });
       });
-
-      //All is well
-      //initialized = true;
     },
 
     instantiateCameraHandling(facefinder_classify_region) {
@@ -87,8 +115,6 @@ export default {
         // if it's above the threshold, draw it
         // (the constant 50.0 is empirical: other cascades might require a different one)
         if (dets[i][3] > 50.0) {
-          //
-          this.canvasElement.beginPath();
           let bb = getArcBounds(
             dets[i][1],
             dets[i][0],
@@ -96,80 +122,59 @@ export default {
             0,
             2 * Math.PI
           );
-
-          this.faceBoundingBox = bb;
-          this.canvasElement.rect(bb.x, bb.y, bb.width, bb.height);
-          this.canvasElement.lineWidth = 3;
-          this.canvasElement.strokeStyle = "red";
-          this.canvasElement.stroke();
+          this.drawRect(bb);
         }
     },
 
+    drawRect(bb) {
+      this.canvasElement.beginPath();
+      this.faceBoundingBox = bb;
+      this.canvasElement.rect(bb.x, bb.y, bb.width, bb.height);
+      this.canvasElement.lineWidth = 3;
+      this.canvasElement.strokeStyle = "red";
+      this.canvasElement.stroke();
+    },
+
     takeSnapshot() {
-      console.log("snap!");
-      console.log(this.faceBoundingBox);
-
       // get image data
-      let ImageData = this.canvasElement.getImageData(
-        this.faceBoundingBox.x + 5,
-        this.faceBoundingBox.y + 5,
-        this.faceBoundingBox.width - 5,
-        this.faceBoundingBox.height - 7
-      );
-      console.log(ImageData);
+      let imgData = this.getImageFromCanvas();
+      let snapshotOnCanvas = this.getSnapshotOnCanvas(imgData);
+      this.selfieImgSrc = this.getImageURL(snapshotOnCanvas);
+      this.getSimilarFaces(snapshotOnCanvas);
+    },
 
-      // create image element
-      let faceCutOut = new Image();
-      faceCutOut.src = this.getImageURL(
-        ImageData,
+    getSnapshotOnCanvas(imgData) {
+      var canvas = document.createElement("canvas");
+      var ctx = canvas.getContext("2d");
+      canvas.width = this.faceBoundingBox.width - this.borderCompensate;
+      canvas.height = this.faceBoundingBox.width - this.borderCompensate;
+      ctx.putImageData(imgData, 0, 0);
+      return canvas;
+    },
+
+    getImageFromCanvas() {
+      return this.canvasElement.getImageData(
+        this.faceBoundingBox.x + 4, //compensate for red rect
+        this.faceBoundingBox.y + 4, //compensate for red rect
         this.faceBoundingBox.width,
         this.faceBoundingBox.height
       );
-
-      // append image element to body
-      document.body.appendChild(faceCutOut);
     },
 
-    getImageURL(imgData, width, height) {
-      var canvas = document.createElement("canvas");
-      var ctx = canvas.getContext("2d");
-      canvas.width = width;
-      canvas.height = height;
-      ctx.putImageData(imgData, 0, 0);
-      this.postImg(imgData, width, height);
+    getImageURL(canvas) {
       return canvas.toDataURL(); //image URL
     },
-    makeImageFromURL(imgURL) {
-      var img = Image();
-      img.src = imgURL;
-      return img;
-    },
-    postImg(imgData, width, height) {
-      var canvas = document.createElement("canvas");
-      var ctx = canvas.getContext("2d");
-      canvas.width = width;
-      canvas.height = height;
-      ctx.putImageData(imgData, 0, 0);
-      canvas.toBlob(function(blob) {
-        const formData = new FormData();
-        formData.append("image", blob, "face_" + new Date().getTime());
-        console.log(formData);
-        axios.post("/like-a-look/api/similar/", formData)
-            .then(function (faces) {
-              var img = new Image();
-              img.src = faces.data[0].url;
-              document.body.appendChild(img);
-            })
+
+    getSimilarFaces(canvas) {
+      canvas.toBlob(blob => {
+        const faceData = new FormData();
+        faceData.append("image", blob, "face_" + new Date().getTime());
+        lookLikeService.getLookALike(faceData).then(faces => {
+          this.showConfirmation = true;
+          this.lookLikeImgSrc = faces[0].url;
+        });
       });
     }
-
-    /*  canvas.toBlob(function(blob) {
-  const formData = new FormData();
-  formData.append('my-file', blob, 'filename.png');
-
-  // Post via axios or other transport method
-  axios.post('/api/upload', formData);
-});*/
   }
 };
 </script>
