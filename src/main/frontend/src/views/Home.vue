@@ -1,18 +1,18 @@
 <template>
   <div class="home">
-    <h1>Daner Face Detection Test</h1>
-    <DanerFaceCam />
+    <h1>Photo Booth Face Detection Test</h1>
+    <FaceCam />
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import DanerFaceCam from "@/components/DanerFaceCam.vue";
+import FaceCam from "@/components/FaceCam.vue";
 
 export default {
   name: "Home",
   components: {
-    DanerFaceCam
+    FaceCam
   }
 };
 </script>
