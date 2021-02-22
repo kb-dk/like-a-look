@@ -45,5 +45,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ### Copy changes to the repo
 
 ```shell
+rm -r ../webapp/css/ ../webapp/favicon.ico ../webapp/index.html ../webapp/js/
 cp -r dist/* ../webapp/
 ```
