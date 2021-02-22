@@ -8,3 +8,7 @@ LikeALookApiServiceImpl.java
 like-a-look-te.yaml
 src/main/frontend/dist/
 src/main/frontend/node_modules/
+src/main/webapp/css/
+src/main/webapp/favicon.ico
+src/main/webapp/index.html
+src/main/webapp/js/
