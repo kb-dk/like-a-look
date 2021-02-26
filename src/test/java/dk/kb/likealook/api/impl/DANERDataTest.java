@@ -1,12 +1,11 @@
 package dk.kb.likealook.api.impl;
 
+import dk.kb.likealook.config.ServiceConfig;
 import dk.kb.util.yaml.YAML;
-import org.apache.tools.ant.filters.StringInputStream;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,7 +32,23 @@ class DANERDataTest {
                  "  daner:\n" +
                  "     csv: 'daner_metadata.csv'\n"
                 ).getBytes(StandardCharsets.UTF_8)));
-        DANERData dd = new DANERData(config);
-        assertEquals(26, dd.size(), "The amount of loadedportraits should be as expected");
+        ServiceConfig.setConfig(config);
+        
+        DANERData dd = new DANERData();
+        assertEquals(24, dd.size(), "The amount of loadedportraits should be as expected");
+    }
+
+    @Test
+    void testDateParsing() {
+        String[][] TESTS = new String[][]{
+                { "1856-09-07", "7-9-1856"},
+                { "1856-09-07", "7/9/1856"},
+                { "1856-09-07", "7.9.1856"},
+                { "1925-06-26", "26.6.1925"}
+        };
+
+        for (String[] test: TESTS) {
+            assertEquals(test[0], DANERData.parseDate(test[1]));
+        }
     }
 }

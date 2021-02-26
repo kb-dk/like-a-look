@@ -51,5 +51,12 @@ public class ServiceConfig {
         }
         return serviceConfig;
     }
-  
+
+    /**
+     * Manual setter for the config. Not normally used.
+     * @param config the new configuration for the application.
+     */
+    public static void setConfig(YAML config) {
+        serviceConfig = config;
+    }
 }

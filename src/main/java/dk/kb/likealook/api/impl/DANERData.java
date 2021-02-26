@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +47,8 @@ public class DANERData {
 
     public static final String DANER_KEY = ".likealook.daner";
     public static final String CSV_KEY = ".csv";
+    public static final String RESOURCE_URL_PREFIX_KEY = ".resource.url";
+    public static final String RESOURCE_URL_PREFIX_DEFAULT = "/like-a-look/resource/daner/";
 
     public static final String FACE_RESOURCES = "faces";
     public static final String CLOSEUP_RESOURCES = "faces_close_cut";
@@ -55,6 +56,7 @@ public class DANERData {
     private static DANERData instance;
 
     private final Map<String, SimilarResponseDto> metadata = new HashMap<>();
+    private String resourceURLPrefix;
 
     public static DANERData getInstance() {
         if (instance == null) {
@@ -72,7 +74,7 @@ public class DANERData {
             return;
         }
 
-        YAML danerConf = ServiceConfig.getConfig().getSubMap(DANER_KEY);
+        YAML danerConf = config.getSubMap(DANER_KEY);
         Arrays.asList(FACE_RESOURCES, CLOSEUP_RESOURCES).forEach(
                 resource -> {
                     if (!ResourceHandler.hasCollection(resource)) {
@@ -82,6 +84,7 @@ public class DANERData {
                     }
                 });
         String csv = danerConf.getString(CSV_KEY);
+        resourceURLPrefix = danerConf.getString(RESOURCE_URL_PREFIX_KEY, RESOURCE_URL_PREFIX_DEFAULT);
         loadCSV(csv);
     }
 
@@ -139,17 +142,18 @@ public class DANERData {
 
         ImageDto image = new ImageDto();
         image.setId(base);
-        image.setMicroURL(CLOSEUP_RESOURCES + "/" + baseImage);
-        image.setTinyURL(FACE_RESOURCES + "/" + baseImage);
-        image.setMediumURL(FACE_RESOURCES + "/" + baseImage); // TODO: Would be better to link to full portrait
-        image.setCreationDate(dateToStr(elements[5]));
+        image.setMicroURL(resourceURLPrefix + CLOSEUP_RESOURCES + "/" + baseImage);
+        image.setTinyURL(resourceURLPrefix + FACE_RESOURCES + "/" + baseImage);
+        image.setMediumURL(resourceURLPrefix + FACE_RESOURCES + "/" + baseImage); // TODO: Would be better to link to full portrait
+        image.setCreationDate(datesToStr(elements[5]));
+        image.setDataURL(elements[8]);
         similar.setSimilarImage(image);
 
         PersonDto person = new PersonDto();
         person.setFirstName(elements[1]);
         person.setLastName(elements[2]);
-        person.setBirthday(dateToStr(elements[3]));
-        person.setDeathday(dateToStr(elements[4]));
+        person.setBirthday(datesToStr(elements[3]));
+        person.setDeathday(datesToStr(elements[4]));
         person.setOccupation(elements[6]);
         similar.setSimilarPerson(person);
 
@@ -157,20 +161,16 @@ public class DANERData {
                 Arrays.stream(elements[7].split(" *[|] *"))
                         .filter(photographer -> !photographer.isBlank())
                         .map(DANERData::parsePhotographer)
-                        .filter(Objects::nonNull)
                         .collect(Collectors.toList()));
 
         metadata.put(base, similar);
+        System.out.println(similar);
     }
 
     // Jørgensen, Chresten Estrup (11.9.1843-21.11.1879) fotograf
     // Jørgensen, Jacobine Wendelia f. Bentzen (19.5.1849-)
     private static PersonDto parsePhotographer(String photographerStr) {
-        String[] comma = photographerStr.split(" *, *");
-        if (comma.length > 2) {
-            log.warn("The photographer contained 2+ 1 commas: '" + photographerStr + "'");
-            return null;
-        }
+        String[] comma = photographerStr.split(" *, *", 2);
 
         PersonDto person = new PersonDto();
 
@@ -207,21 +207,22 @@ public class DANERData {
     }
 
     // 07.06.1846,  7.6.1846, 7/6/1846, 11.9.1843-21.11.1879, 1843-1879
-    private static String dateToStr(String dateStr) {
+    static String datesToStr(String dateStr) {
         if (dateStr == null || dateStr.isEmpty()) {
             return "";
         }
-        return Arrays.stream(dateStr.split(" *- *"))
+        return Arrays.stream(dateStr.split(" *[-] *"))
                 .map(DANERData::parseDate)
-                .collect(Collectors.joining("-"));
+                .collect(Collectors.joining(" to "));
     }
 
     // 07.06.1846,  7.6.1846, 7/6/1846, 1843, 11-1879
-    private static String parseDate(String dateStr) {
-        return Arrays.stream(dateStr.split(" *[^0-9]+ *"))
+    static String parseDate(String dateStr) {
+        List<String> dElements= Arrays.stream(dateStr.split(" *[^0-9]+ *"))
                 .map(element -> (element.length() < 2 ? "0" : "") + element)
-                .sorted(Collections.reverseOrder())
-                .collect(Collectors.joining(" to "));
+                .collect(Collectors.toList());
+        Collections.reverse(dElements);
+        return String.join("-", dElements);
     }
 
 }
