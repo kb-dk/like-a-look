@@ -68,6 +68,14 @@ public class ResourceHandler {
         return id.contains("/") ? instance.getQualifiedResource(id) : instance.getDirectResource(id);
     }
 
+    /**
+     * @param collectionName a root.
+     * @return true if the name of one of the roots matches collectionName.
+     */
+    public static boolean hasCollection(String collectionName) {
+        return instance.roots.containsKey(collectionName);
+    }
+
     private InputStream getDirectResource(String id) {
         for (Path root: roots.values()) {
             Path file = root.resolve(id);

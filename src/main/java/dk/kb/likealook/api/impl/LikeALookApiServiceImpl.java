@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import dk.kb.likealook.model.BoxDto;
 import dk.kb.likealook.model.ErrorDto;
 import java.io.File;
+import dk.kb.likealook.model.ImageDto;
 import java.util.List;
 import java.util.Map;
+import dk.kb.likealook.model.PersonDto;
+import dk.kb.likealook.model.SimilarResponseDto;
 import dk.kb.likealook.model.SubjectDto;
-import dk.kb.likealook.model.WholeImageDto;
 
 import dk.kb.webservice.exception.ServiceException;
 import dk.kb.webservice.exception.InternalServiceException;
@@ -109,7 +111,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         
         try{ 
             List<String> response = new ArrayList<>();
-        response.add("JOt8zYCV");
+        response.add("QFN1ww");
         return response;
         } catch (Exception e){
             throw handleException(e);
@@ -175,9 +177,9 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<SubjectDto> response = new ArrayList<>();
         SubjectDto item = new SubjectDto();
-        item.setSubject("v2keT");
-        item.setSourceID("w67b2CG");
-        item.setConfidence(-1.16513e+38F);
+        item.setSubject("EhZIG2");
+        item.setSourceID("Ke4a011D");
+        item.setConfidence(-2.79588e+38F);
         response.add(item);
         return response;
         } catch (Exception e){
@@ -198,24 +200,49 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
      * @param maxMatches: The maximum number of similar images to return
      * 
      * @return <ul>
-      *   <li>code = 200, message = "An array of metadata for similar images, including URLs for the images", response = WholeImageDto.class, responseContainer = "List"</li>
+      *   <li>code = 200, message = "An array of metadata for similar images, including URLs for the images", response = SimilarResponseDto.class, responseContainer = "List"</li>
       *   </ul>
       * @throws ServiceException when other http codes should be returned
       *
       * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
      */
     @Override
-    public List<WholeImageDto> findSimilarWhole( Attachment imageDetail, String collection, String sourceID, Integer maxMatches) throws ServiceException {
+    public List<SimilarResponseDto> findSimilarWhole( Attachment imageDetail, String collection, String sourceID, Integer maxMatches) throws ServiceException {
         // TODO: Implement...
     
         
         try{ 
-            List<WholeImageDto> response = new ArrayList<>();
-        WholeImageDto item = new WholeImageDto();
-        item.setSourceID("cugOZ");
-        item.setImageID("XoTW6");
-        item.setDistance(-7448461789730203726.65936577374957409D);
-        item.setUrl("v2UnS0kwv0o");
+            List<SimilarResponseDto> response = new ArrayList<>();
+        SimilarResponseDto item = new SimilarResponseDto();
+        item.setSourceID("OL0Lx");
+        item.setDistance(6078309288049575951.4883163624194445D);
+        ImageDto similarImage = new ImageDto();
+        similarImage.setId("I627H9");
+        similarImage.setMicroURL("zX8Iu37");
+        similarImage.setTinyURL("rGmt7");
+        similarImage.setMediumURL("pdFxV");
+        similarImage.setFullURL("o7mTfTc");
+        similarImage.setRawURL("Aof502vb");
+        similarImage.setIiifURL("NNCaRD");
+        similarImage.setCreationDate("s0O40Q");
+        similarImage.setDataURL("VcOl7");
+        item.setSimilarImage(similarImage);
+        PersonDto similarPerson = new PersonDto();
+        similarPerson.setFirstName("C5eTL");
+        similarPerson.setLastName("Mrz0Z1Y522lIp");
+        similarPerson.setBirthday("nJ83S");
+        similarPerson.setDeathday("rNsQ2a");
+        similarPerson.setOccupation("q2AqF");
+        item.setSimilarPerson(similarPerson);
+        List<PersonDto> imageCreators = new ArrayList<>();
+        PersonDto imageCreators2 = new PersonDto();
+        imageCreators2.setFirstName("mAWgDebP3");
+        imageCreators2.setLastName("M4m610g");
+        imageCreators2.setBirthday("K7F59");
+        imageCreators2.setDeathday("v9D8U");
+        imageCreators2.setOccupation("hP8E4P");
+        imageCreators.add(imageCreators2);
+        item.setImageCreators(imageCreators);
         response.add(item);
         return response;
         } catch (Exception e){
@@ -272,7 +299,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
     
         
         try{ 
-            String response = "JuEwGa";
+            String response = "eEON7Jc";
         return response;
         } catch (Exception e){
             throw handleException(e);

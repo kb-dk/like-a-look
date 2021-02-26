@@ -52,7 +52,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/WholeImage'
+                  $ref: '#/components/schemas/SimilarResponse'
 
   /collections:
     get:
@@ -233,24 +233,95 @@ paths:
                 type: string
 components:
   schemas:
-    WholeImage:
+    SimilarResponse:
       type: object
       required:
-        - url
+        - similarImage
       properties:
         sourceID:
           type: string
           description: 'The ID for the source image, if one was provided by the caller'
-        imageID:
-          type: string
-          description: 'The ID for the similar image'
+          example: 'TestImage2.jpg'
         distance:
           type: number
           format: double
           description: 'The similarity distance: Lower is better, 0 is identical'
-        url:
+          example: 0.345
+        similarImage:
+          $ref: '#/components/schemas/Image'
+        similarPerson:
+          $ref: '#/components/schemas/Person'
+        imageCreators:
+          type: array
+          items:
+            $ref: '#/components/schemas/Person'
+          description: 'The one or more photographers responsible for the similar image'
+
+    Person:
+      type: object
+      properties:
+        firstName:
           type: string
-          description: 'The URL for the similar image'
+          description: 'The first name of the person'
+          example: 'Alfred'
+        lastName:
+          type: string
+          description: 'The first name of the person'
+          example: 'Lehmann'
+        birthday:
+          type: string
+          description: 'The birthday of the person, stated as YYYY, YYYY-MM or YYYY-MM-DD'
+          example: '1858'
+        deathday:
+          type: string
+          description: 'The deathday of the person, stated as YYYY, YYYY-MM or YYYY-MM-DD'
+          example: '1921'
+        occupation:
+          type: string
+          description: 'The occupation of the person'
+          example: 'psykolog'
+
+    Image:
+      type: object
+      required:
+        - previewURL
+      properties:
+        id:
+          type: string
+          description: 'The internal ID for the image'
+          example: '0473151'
+        microURL:
+          type: string
+          description: 'A direct link to a tight crop or very small scale instance of the image for use as icons or similar. JPEG or PNG is preferered'
+          example: 'http://kb-images.kb.dk/DAMJP2%2FDAM%2FSamlingsbilleder%2FSamlingsbilleder%2Fsamlingsbilleder%2F1352%2F0473151/1100,900,1120,1500/200,/0/native.jpg'
+        tinyURL:
+          type: string
+          description: 'A direct link to a crop or small scale instance of the image for display purposes. JPEG or PNG is preferered'
+          example: 'http://kb-images.kb.dk/DAMJP2%2FDAM%2FSamlingsbilleder%2FSamlingsbilleder%2Fsamlingsbilleder%2F1352%2F0473151/850,700,1550,2200/200,/0/native.jpg'
+        mediumURL:
+          type: string
+          description: 'A direct link to the image for display purposes. JPEG or PNG is preferered'
+          example: 'http://kb-images.kb.dk/DAMJP2%2FDAM%2FSamlingsbilleder%2FSamlingsbilleder%2Fsamlingsbilleder%2F1352%2F0473151/full/400,/0/native.jpg'
+        fullURL:
+          type: string
+          description: 'A direct link to a full size instance of the image. JPEG or PNG is preferered'
+          example: 'http://kb-images.kb.dk/DAMJP2%2FDAM%2FSamlingsbilleder%2FSamlingsbilleder%2Fsamlingsbilleder%2F1352%2F0473151/full/full/0/native.jpg'
+        rawURL:
+          type: string
+          description: 'A direct link to a raw, full size instance of the image. Images format in undefined, so TIFF / JPEG2000 / SVG are possible'
+          example: 'http://kb-images.kb.dk/DAMJP2%2FDAM%2FSamlingsbilleder%2FSamlingsbilleder%2Fsamlingsbilleder%2F1352%2F0473151/full/full/0/native.tif'
+        iiifURL:
+          type: string
+          description: 'The URL prefix for an IIIF conforming image server (see https://iiif.io/api/image/3.0/)'
+          example: 'http://kb-images.kb.dk/DAMJP2%2FDAM%2FSamlingsbilleder%2FSamlingsbilleder%2Fsamlingsbilleder%2F1352%2F0473151/'
+        creationDate:
+          type: string
+          description: 'The day that the image was created. Can be a single date or an interval. If single date, it is stated as YYYY, YYYY-MM or YYYY-MM-DD. If interval, it is stated as "YYYY to YYYY"'
+          example: '1895-1907'
+        dataURL:
+          type: string
+          description: 'A link to a resource (typically a webpage) with data about the similar image'
+          example: 'http://www5.kb.dk/images/billed/2010/okt/billeder/object10530/da/'
 
     Box:
       type: object

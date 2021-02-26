@@ -1,12 +1,9 @@
 package dk.kb.likealook.api.impl;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.likealook.api.LikeALookApi;
-import dk.kb.likealook.model.BoxDto;
+import dk.kb.likealook.model.ImageDto;
+import dk.kb.likealook.model.SimilarResponseDto;
 import dk.kb.likealook.model.SubjectDto;
-import dk.kb.likealook.model.WholeImageDto;
 import dk.kb.likealook.util.JSONArrayStream;
 import dk.kb.webservice.exception.InternalServiceException;
 import dk.kb.webservice.exception.InvalidArgumentServiceException;
@@ -29,13 +26,10 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Providers;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
@@ -126,23 +120,27 @@ public class LikeALook implements LikeALookApi {
       * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
      */
     @Override
-    public List<WholeImageDto> findSimilarWhole( Attachment imageDetail, String collection, String sourceID, Integer maxMatches) throws ServiceException {
+    public List<SimilarResponseDto> findSimilarWhole(Attachment imageDetail, String collection, String sourceID, Integer maxMatches) throws ServiceException {
         if (collection != null && !collection.isEmpty() && !"daner".equals(collection)) {
             throw new InvalidArgumentServiceException("The collection '" + collection + "' is unknown");
         }
         log.info("findSimilarWhole(..., collection=" + collection + ", sourceID=" + sourceID + ", maxMatches=" + maxMatches + ") called");
-        List<WholeImageDto> response = new ArrayList<>();
+        List<SimilarResponseDto> response = new ArrayList<>();
         Random r = new Random(("" + sourceID).hashCode());
         double distance = r.nextDouble();
         for (int i = 0 ; i < (maxMatches == null ? 10 : maxMatches) ; i++) {
-            WholeImageDto item = new WholeImageDto();
+            SimilarResponseDto item = new SimilarResponseDto();
             distance += r.nextDouble();
+            item.setDistance(distance);
             if (sourceID != null) {
                 item.setSourceID(sourceID);
             }
-            item.setImageID("SampleImage_" + i + "_" + distance);
-            item.setDistance(distance);
-            item.setUrl(String.format(Locale.ROOT, "https://placekitten.com/g/%d/%d", 200+((i+1)/2), 300+(i/2)));
+
+            ImageDto image = new ImageDto();
+            image.setId("SampleImage_" + i + "_" + distance);
+            image.setMediumURL(String.format(Locale.ROOT, "https://placekitten.com/g/%d/%d", 200+((i+1)/2), 300+(i/2)));
+            item.setSimilarImage(image);
+            
             response.add(item);
         }
         enableCORS();
