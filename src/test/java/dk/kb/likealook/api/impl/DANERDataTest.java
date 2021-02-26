@@ -34,16 +34,16 @@ class DANERDataTest {
                 ).getBytes(StandardCharsets.UTF_8)));
         ServiceConfig.setConfig(config);
         
-        DANERData dd = new DANERData();
-        assertEquals(24, dd.size(), "The amount of loadedportraits should be as expected");
+        assertEquals(24, DANERData.size(), "The amount of loaded portraits should be as expected");
     }
 
     @Test
     void testDateParsing() {
         String[][] TESTS = new String[][]{
+                { "1856-12", "12-1856"},
                 { "1856-09-07", "7-9-1856"},
-                { "1856-09-07", "7/9/1856"},
-                { "1856-09-07", "7.9.1856"},
+                { "1856-10-07", "7/10/1856"},
+                { "1856-11-07", "7.11.1856"},
                 { "1925-06-26", "26.6.1925"}
         };
 

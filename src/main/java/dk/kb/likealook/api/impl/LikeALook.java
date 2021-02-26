@@ -126,7 +126,10 @@ public class LikeALook implements LikeALookApi {
         }
         log.info("findSimilarWhole(..., collection=" + collection + ", sourceID=" + sourceID + ", maxMatches=" + maxMatches + ") called");
         List<SimilarResponseDto> response = new ArrayList<>();
-        Random r = new Random(("" + sourceID).hashCode());
+        Random r = new Random();
+        List<String> imageIDs = new ArrayList<>(DANERData.getImageIDs());
+        Collections.shuffle(imageIDs, r);
+
         double distance = r.nextDouble();
         for (int i = 0 ; i < (maxMatches == null ? 10 : maxMatches) ; i++) {
             SimilarResponseDto item = new SimilarResponseDto();
@@ -135,12 +138,8 @@ public class LikeALook implements LikeALookApi {
             if (sourceID != null) {
                 item.setSourceID(sourceID);
             }
+            DANERData.fillResponse(item, imageIDs.get(i));
 
-            ImageDto image = new ImageDto();
-            image.setId("SampleImage_" + i + "_" + distance);
-            image.setMediumURL(String.format(Locale.ROOT, "https://placekitten.com/g/%d/%d", 200+((i+1)/2), 300+(i/2)));
-            item.setSimilarImage(image);
-            
             response.add(item);
         }
         enableCORS();

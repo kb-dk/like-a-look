@@ -21,6 +21,7 @@ import dk.kb.likealook.model.PersonDto;
 import dk.kb.likealook.model.SimilarResponseDto;
 import dk.kb.util.Resolver;
 import dk.kb.util.yaml.YAML;
+import dk.kb.webservice.exception.InternalServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +32,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -47,7 +49,7 @@ public class DANERData {
 
     public static final String DANER_KEY = ".likealook.daner";
     public static final String CSV_KEY = ".csv";
-    public static final String RESOURCE_URL_PREFIX_KEY = ".resource.url";
+    public static final String RESOURCE_URL_PREFIX_KEY = ".resource.urlprefix";
     public static final String RESOURCE_URL_PREFIX_DEFAULT = "/like-a-look/resource/daner/";
 
     public static final String FACE_RESOURCES = "faces";
@@ -91,8 +93,33 @@ public class DANERData {
     /**
      * @return the amount of persons in the collection.
      */
-    public int size() {
-        return metadata.size();
+    public static int size() {
+        return getInstance().metadata.size();
+    }
+
+    /**
+     * Assigns similarImage, similarPerson and imageCreators to the given response.
+     * Note that the assignments are shallow copies. Do not modify the added metadata!
+     * @param response the response to fill.
+     * @param imageID  the ID for the similarImage, similarPerson and imageCreators data.
+     * @return the given response, extended with the relevant information.
+     */
+    public static SimilarResponseDto fillResponse(SimilarResponseDto response, String imageID) {
+        SimilarResponseDto data = getInstance().metadata.get(imageID);
+        if (data == null) {
+            throw new InternalServiceException("Error: Unable to locate metadata for imageID '" + imageID + "'");
+        }
+        response.setSimilarImage(data.getSimilarImage());
+        response.setSimilarPerson(data.getSimilarPerson());
+        response.setImageCreators(data.getImageCreators());
+        return response;
+    }
+
+    /**
+     * @return the imageIDs currently in the DANER collection.
+     */
+    public static Set<String> getImageIDs() {
+        return getInstance().metadata.keySet();
     }
 
     private void loadCSV(String csv) {
@@ -164,7 +191,6 @@ public class DANERData {
                         .collect(Collectors.toList()));
 
         metadata.put(base, similar);
-        System.out.println(similar);
     }
 
     // Jørgensen, Chresten Estrup (11.9.1843-21.11.1879) fotograf
