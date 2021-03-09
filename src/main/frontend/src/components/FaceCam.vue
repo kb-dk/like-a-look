@@ -171,7 +171,7 @@ export default {
         faceData.append("image", blob, "face_" + new Date().getTime());
         lookLikeService.getLookALike(faceData).then(faces => {
           this.showConfirmation = true;
-          this.lookLikeImgSrc = faces[0].url;
+          this.lookLikeImgSrc = faces[0].similarImage.mediumURL;
         });
       });
     }
