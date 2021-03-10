@@ -249,11 +249,13 @@ public class LikeALook implements LikeALookApi {
      */
     @Override
     public javax.ws.rs.core.StreamingOutput getResource(String collection, String id) throws ServiceException {
+        log.debug("Resolving resource '" + collection + "/" + id + "'");
         try {
             InputStream resource = ResourceHandler.getResource(collection + "/" + id);
             if (resource == null) {
-                throw new NotFoundException("The resource from collection '" + collection + "' with id '" + id +
-                                            "' could not be located");
+                throw new NotFoundException(
+                        "The resource from collection '" + collection + "' with id '" + id + "' could not be located. " +
+                        "Collection exists: " + ResourceHandler.hasCollection(collection));
             }
             if (id.toLowerCase(Locale.ROOT).endsWith(".jpg") || id.toLowerCase(Locale.ROOT).endsWith(".jpeg")) {
                 System.out.println("Setting JPEG");
@@ -268,6 +270,9 @@ public class LikeALook implements LikeALookApi {
     }
 
     private void enableCORS() {
+        if (httpServletResponse == null) {
+            return; // Unit testing does not initialise this
+        }
         httpServletResponse.setHeader("Access-Control-Allow-Origin", "*");
         httpServletResponse.setHeader("Access-Control-Allow-Methods", "GET, POST");
         httpServletResponse.setHeader("Access-Control-Allow-Headers", "Content-Type, api_key, Authorization");
