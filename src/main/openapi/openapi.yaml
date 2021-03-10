@@ -247,6 +247,9 @@ components:
           format: double
           description: 'The similarity distance: Lower is better, 0 is identical'
           example: 0.345
+        url:
+          type: string
+          description: 'Deprecated in favor of .similarImage.mediumURL'
         similarImage:
           $ref: '#/components/schemas/Image'
         similarPerson:
