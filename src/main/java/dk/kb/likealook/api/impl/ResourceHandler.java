@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,26 +40,40 @@ public class ResourceHandler {
 
     private static final String ROOTS_KEY = ".likealook.resources.roots";
 
+    private static final String EPHEMERAL_ENABLED_KEY = ".likealook.resources.ephemeral.enabled";
+    private static final boolean EPHEMERAL_ENABLED_DEFAULT = true;
+    private static final String EPHEMERAL_TIMEOUT_KEY = ".likealook.resources.ephemeral.timeout";
+    private static final int EPHEMERAL_TIMEOUT_DEFAULT = 5*60;
+    private static final String EPHEMERAL_ENTRIES_KEY = ".likealook.resources.ephemeral.entries";
+    private static final int EPHEMERAL_ENTRIES_DEFAULT = 100;
+
     private static final ResourceHandler instance = new ResourceHandler();
 
     private final Map<String, Path> roots = new HashMap<>();
+    private final boolean ephemeralEnabled;
+    private final int ephemeralTimeoutSeconds;
+    private final int ephemeralMaxEntries;
 
     public ResourceHandler() {
-        if (!ServiceConfig.getConfig().containsKey(ROOTS_KEY)) {
-            log.info("Skipping setup of ResourceHandler as '{}' does not exist in configuration", ROOTS_KEY);
-            return;
+        YAML conf = ServiceConfig.getConfig();
+
+        if (ServiceConfig.getConfig().containsKey(ROOTS_KEY)) {
+            List<YAML> rootConfigs = conf.getYAMLList(ROOTS_KEY);
+            for (YAML rootConfig : rootConfigs) {
+                String name = rootConfig.getString(".name");
+                String pathString = rootConfig.getString(".path");
+                Path path = Path.of(pathString);
+                if (!Files.exists(path)) {
+                    log.warn("The root '{}' with path '{}' does not exist", name, pathString);
+                }
+                roots.put(name, path);
+            }
         }
 
-        List<YAML> rootConfigs = ServiceConfig.getConfig().getYAMLList(ROOTS_KEY);
-        for (YAML rootConfig: rootConfigs) {
-            String name = rootConfig.getString(".name");
-            String pathString = rootConfig.getString(".path");
-            Path path = Path.of(pathString);
-            if (!Files.exists(path)) {
-                log.warn("The root '{}' with path '{}' does not exist", name, pathString);
-            }
-            roots.put(name, path);
-        }
+        ephemeralEnabled = conf.getBoolean(EPHEMERAL_ENABLED_KEY, EPHEMERAL_ENABLED_DEFAULT);
+        ephemeralTimeoutSeconds = conf.getInteger(EPHEMERAL_TIMEOUT_KEY, EPHEMERAL_TIMEOUT_DEFAULT);
+        ephemeralMaxEntries = conf.getInteger(EPHEMERAL_ENTRIES_KEY, EPHEMERAL_ENTRIES_DEFAULT);
+
         log.info("Created ResourceHandler with " + roots.size() + " roots");
     }
 
