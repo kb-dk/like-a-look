@@ -1,7 +1,10 @@
 package dk.kb.likealook.api.impl;
 
 import dk.kb.likealook.TestHelper;
+import dk.kb.likealook.model.SimilarResponseDto;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,27 +22,16 @@ import static org.junit.jupiter.api.Assertions.*;
  *  limitations under the License.
  *
  */
-class DANERDataTest {
+class LikeALookTest {
 
     @Test
-    void testParsing() {
+    void testDANER() {
         TestHelper.initTestSetup();
 
-        assertEquals(24, DANERData.size(), "The amount of loaded portraits should be as expected");
+        List<SimilarResponseDto> similars = new LikeALook().findSimilarWhole(
+                null, "daner", "dummy", 10);
+        assertEquals(10, similars.size(), "Calling similar for 'daner' should yield the right number of results");
+        System.out.println(similars.get(0));
     }
 
-    @Test
-    void testDateParsing() {
-        String[][] TESTS = new String[][]{
-                { "1856-12", "12-1856"},
-                { "1856-09-07", "7-9-1856"},
-                { "1856-10-07", "7/10/1856"},
-                { "1856-11-07", "7.11.1856"},
-                { "1925-06-26", "26.6.1925"}
-        };
-
-        for (String[] test: TESTS) {
-            assertEquals(test[0], DANERData.parseDate(test[1]));
-        }
-    }
 }

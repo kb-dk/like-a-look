@@ -4,7 +4,7 @@ Finding similar images using machine learning
 
 ## Current status
 
-Services for detecting faces and guessing subject of images has been added.
+Very much under development.
              
 ## Requirements
 
