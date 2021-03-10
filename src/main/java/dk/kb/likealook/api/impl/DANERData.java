@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,7 +51,7 @@ public class DANERData {
     public static final String DANER_KEY = ".likealook.daner";
     public static final String CSV_KEY = ".csv";
     public static final String RESOURCE_URL_PREFIX_KEY = ".resource.urlprefix";
-    public static final String RESOURCE_URL_PREFIX_DEFAULT = "/like-a-look/resource/daner/";
+    public static final String RESOURCE_URL_PREFIX_DEFAULT = "/like-a-look/api/resource/daner/";
 
     public static final String FACE_RESOURCES = "faces";
     public static final String CLOSEUP_RESOURCES = "faces_close_cut";
@@ -99,6 +100,7 @@ public class DANERData {
 
     /**
      * Assigns similarImage, similarPerson and imageCreators to the given response.
+     * Also assigns URL as a temporary backward-compatibility measure
      * Note that the assignments are shallow copies. Do not modify the added metadata!
      * @param response the response to fill.
      * @param imageID  the ID for the similarImage, similarPerson and imageCreators data.
@@ -109,6 +111,7 @@ public class DANERData {
         if (data == null) {
             throw new InternalServiceException("Error: Unable to locate metadata for imageID '" + imageID + "'");
         }
+        response.setUrl(data.getUrl());
         response.setSimilarImage(data.getSimilarImage());
         response.setSimilarPerson(data.getSimilarPerson());
         response.setImageCreators(data.getImageCreators());
@@ -129,12 +132,13 @@ public class DANERData {
         }
         metadata.clear();
         csvPaths.forEach(this::addCSV);
+        log.info("Resolved " + metadata.size() + " DANER image metadata from '" + csv + "'");
     }
 
     private void addCSV(Path csvPath) {
         final int EXPECTED_COUNT = 9;
         log.info("Loading metadata from '" + csvPath + "'");
-        try (FileReader fi = new FileReader(csvPath.toFile()) ;
+        try (FileReader fi = new FileReader(csvPath.toFile(), StandardCharsets.UTF_8);
              CSVReader csvReader = new CSVReader(fi, ';')) {
             csvReader.readNext(); // header
             String[] elements;
@@ -166,6 +170,9 @@ public class DANERData {
         final String baseImage = elements[0];
         final String base = baseImage.replaceAll("[.][a-z]*$", ""); // Remove extension
         SimilarResponseDto similar = new SimilarResponseDto();
+
+        // Deprecated, so should be removed at some point
+        similar.setUrl(resourceURLPrefix + FACE_RESOURCES + "/" + baseImage);
 
         ImageDto image = new ImageDto();
         image.setId(base);
@@ -202,7 +209,7 @@ public class DANERData {
 
         person.setLastName(comma[0]);
         if (comma.length == 1) {
-            log.warn("Only able to extract last name from photographer '" + photographerStr + "'");
+            log.debug("Only able to extract last name from photographer '" + photographerStr + "'");
             return person;
         }
 
