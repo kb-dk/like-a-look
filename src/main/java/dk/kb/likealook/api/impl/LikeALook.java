@@ -30,6 +30,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Providers;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
@@ -124,26 +125,17 @@ public class LikeALook implements LikeALookApi {
         if (collection != null && !collection.isEmpty() && !"daner".equals(collection)) {
             throw new InvalidArgumentServiceException("The collection '" + collection + "' is unknown");
         }
-        log.info("findSimilarWhole(..., collection=" + collection + ", sourceID=" + sourceID + ", maxMatches=" + maxMatches + ") called");
-        List<SimilarResponseDto> response = new ArrayList<>();
-        Random r = new Random();
-        List<String> imageIDs = new ArrayList<>(DANERData.getImageIDs());
-        Collections.shuffle(imageIDs, r);
-
-        double distance = r.nextDouble();
-        for (int i = 0 ; i < (maxMatches == null ? 10 : maxMatches) ; i++) {
-            SimilarResponseDto item = new SimilarResponseDto();
-            distance += r.nextDouble();
-            item.setDistance(distance);
-            if (sourceID != null) {
-                item.setSourceID(sourceID);
-            }
-            DANERData.fillResponse(item, imageIDs.get(i));
-
-            response.add(item);
+        InputStream imageStream;
+        try {
+            imageStream = imageDetail.getDataHandler().getInputStream();
+        } catch (IOException e) {
+            String message = "findSimilarDANER encountered IOException while getting InputStream for image";
+            log.warn(message, e);
+            throw new InvalidArgumentServiceException(message, e);
         }
+
         enableCORS();
-        return response;
+        return DANERService.findSimilar(imageStream, sourceID, maxMatches);
     }
 
     /**

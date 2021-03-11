@@ -50,8 +50,6 @@ public class DANERData {
 
     public static final String DANER_KEY = ".likealook.daner";
     public static final String CSV_KEY = ".csv";
-    public static final String RESOURCE_URL_PREFIX_KEY = ".resource.urlprefix";
-    public static final String RESOURCE_URL_PREFIX_DEFAULT = "/like-a-look/api/resource/daner/";
 
     public static final String FACE_RESOURCES = "faces";
     public static final String CLOSEUP_RESOURCES = "faces_close_cut";
@@ -59,7 +57,6 @@ public class DANERData {
     private static DANERData instance;
 
     private final Map<String, SimilarResponseDto> metadata = new HashMap<>();
-    private String resourceURLPrefix;
 
     public static DANERData getInstance() {
         if (instance == null) {
@@ -73,7 +70,7 @@ public class DANERData {
     }
     public DANERData(YAML config) {
         if (!config.containsKey(DANER_KEY)) {
-            log.info("Skipping setup of ResourceHandler as '{}' does not exist in configuration", DANER_KEY);
+            log.info("Skipping setup of DANERData as '{}' does not exist in configuration", DANER_KEY);
             return;
         }
 
@@ -87,7 +84,6 @@ public class DANERData {
                     }
                 });
         String csv = danerConf.getString(CSV_KEY);
-        resourceURLPrefix = danerConf.getString(RESOURCE_URL_PREFIX_KEY, RESOURCE_URL_PREFIX_DEFAULT);
         loadCSV(csv);
     }
 
@@ -172,13 +168,13 @@ public class DANERData {
         SimilarResponseDto similar = new SimilarResponseDto();
 
         // Deprecated, so should be removed at some point
-        similar.setUrl(resourceURLPrefix + FACE_RESOURCES + "/" + baseImage);
+        similar.setUrl(ResourceHandler.getResourceURL(FACE_RESOURCES + "/" + baseImage));
 
         ImageDto image = new ImageDto();
         image.setId(base);
-        image.setMicroURL(resourceURLPrefix + CLOSEUP_RESOURCES + "/" + baseImage);
-        image.setTinyURL(resourceURLPrefix + FACE_RESOURCES + "/" + baseImage);
-        image.setMediumURL(resourceURLPrefix + FACE_RESOURCES + "/" + baseImage); // TODO: Would be better to link to full portrait
+        image.setMicroURL(ResourceHandler.getResourceURL(CLOSEUP_RESOURCES + "/" + baseImage));
+        image.setTinyURL(ResourceHandler.getResourceURL(FACE_RESOURCES + "/" + baseImage));
+        image.setMediumURL(ResourceHandler.getResourceURL(FACE_RESOURCES + "/" + baseImage)); // TODO: Would be better to link to full portrait
         image.setCreationDate(datesToStr(elements[5]));
         image.setDataURL(elements[8]);
         similar.setSimilarImage(image);

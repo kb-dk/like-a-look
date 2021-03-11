@@ -111,7 +111,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         
         try{ 
             List<String> response = new ArrayList<>();
-        response.add("v9e0r0tz");
+        response.add("WpwM8mu");
         return response;
         } catch (Exception e){
             throw handleException(e);
@@ -177,9 +177,9 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<SubjectDto> response = new ArrayList<>();
         SubjectDto item = new SubjectDto();
-        item.setSubject("GV9Ip");
-        item.setSourceID("guCe7wMQ");
-        item.setConfidence(-1.25374e+38F);
+        item.setSubject("U874M");
+        item.setSourceID("pnJ3Jlm81Y");
+        item.setConfidence(8.89879e+37F);
         response.add(item);
         return response;
         } catch (Exception e){
@@ -214,34 +214,35 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<SimilarResponseDto> response = new ArrayList<>();
         SimilarResponseDto item = new SimilarResponseDto();
-        item.setSourceID("XV3Pz95");
-        item.setDistance(1134865941435173175.4674843810170087D);
-        item.setUrl("Te932");
+        item.setSourceID("bqhF8");
+        item.setSourceURL("vZheR");
+        item.setDistance(-8877495648005482505.149550644041089835D);
+        item.setUrl("uoN80");
         ImageDto similarImage = new ImageDto();
-        similarImage.setId("r3oXQ");
-        similarImage.setMicroURL("i43Pa");
-        similarImage.setTinyURL("Lp5IFG0");
-        similarImage.setMediumURL("ruZMd6W");
-        similarImage.setFullURL("FdJ6PJ");
-        similarImage.setRawURL("S0iX6Svc3z9");
-        similarImage.setIiifURL("RJy5J");
-        similarImage.setCreationDate("DgM5GM8");
-        similarImage.setDataURL("sPmO3");
+        similarImage.setId("b6SvdiG7fVl5FpbTW");
+        similarImage.setMicroURL("lf07u3");
+        similarImage.setTinyURL("YMm7r");
+        similarImage.setMediumURL("E6qaks11q3j");
+        similarImage.setFullURL("waUU3dZ1i2xh");
+        similarImage.setRawURL("Pga2eU");
+        similarImage.setIiifURL("LRgFj");
+        similarImage.setCreationDate("jXFZ9");
+        similarImage.setDataURL("xpIIn");
         item.setSimilarImage(similarImage);
         PersonDto similarPerson = new PersonDto();
-        similarPerson.setFirstName("AwiPqD");
-        similarPerson.setLastName("Dpqkr");
-        similarPerson.setBirthday("iEbbK");
-        similarPerson.setDeathday("IK1DloZ");
-        similarPerson.setOccupation("T1izgd6");
+        similarPerson.setFirstName("xNF1aH0V");
+        similarPerson.setLastName("pFBRM");
+        similarPerson.setBirthday("yM8oeWC46f");
+        similarPerson.setDeathday("JBbh4");
+        similarPerson.setOccupation("q2a4uC8v");
         item.setSimilarPerson(similarPerson);
         List<PersonDto> imageCreators = new ArrayList<>();
         PersonDto imageCreators2 = new PersonDto();
-        imageCreators2.setFirstName("d88Yy");
-        imageCreators2.setLastName("se8UU");
-        imageCreators2.setBirthday("uCVkAs33");
-        imageCreators2.setDeathday("jEHTf");
-        imageCreators2.setOccupation("L5D7LyQ");
+        imageCreators2.setFirstName("fhC16z");
+        imageCreators2.setLastName("xmQF3uIrK");
+        imageCreators2.setBirthday("SBKr1UC");
+        imageCreators2.setDeathday("DhNtx7WM0VWn45rb");
+        imageCreators2.setOccupation("F9Lm3Xd");
         imageCreators.add(imageCreators2);
         item.setImageCreators(imageCreators);
         response.add(item);
@@ -300,7 +301,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
     
         
         try{ 
-            String response = "YsX8II";
+            String response = "DTDZoD3Hd";
         return response;
         } catch (Exception e){
             throw handleException(e);
