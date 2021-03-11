@@ -10,7 +10,6 @@ function getLookALike(user) {
   return axios
     .post(callUrl, user, { headers: { "Content-Type": "application/json" } })
     .then(response => {
-      console.log(response);
       return response.data;
     })
     .catch(error => {

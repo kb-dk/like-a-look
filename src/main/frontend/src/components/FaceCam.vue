@@ -1,15 +1,20 @@
 <template>
   <div>
+    <error-msg v-if="error" />
     <comparison v-show="showConfirmation" @close="closeConfirmation">
-      <h4 slot="header" class="modal-title w-100">Look a like?</h4>
+      <h4 slot="header" class="modal-title w-100">Look alike?</h4>
       <div slot="body">
         <div class="selfieSnap">
-          <div>Your pretty face</div>
-          <img :src="selfieImgSrc" />
+          <div class="selfieSnapHeadline">Your pretty face</div>
+          <div class="selfieSnapImgBox">
+            <img :src="selfieImgSrc" class="selfieSnapImg" />
+          </div>
         </div>
         <div class="lookALikeSnap">
-          <div>Someone else</div>
-          <img :src="lookLikeImgSrc" />
+          <div class="lookAlikesHeadline">
+            Your look alikes from our collection
+          </div>
+          <matched-faces :matchedFaces="lookLikeData" />
         </div>
       </div>
     </comparison>
@@ -35,18 +40,25 @@ import { getPicoImg } from "../utils/imgHelper";
 import picoParams from "../pico-assets/picoParams";
 import { lookLikeService } from "../api/looklike-service";
 import Comparison from "./Comparison.vue";
+import MatchedFaces from "./MatchedFaced.vue";
+import ErrorMsg from "./ErrorMsg.vue";
+
 export default {
   name: "FaceCam",
   components: {
-    Comparison
+    Comparison,
+    MatchedFaces,
+    ErrorMsg
   },
   data() {
     return {
       canvasElement: null,
+      error: false,
       faceBoundingBox: {},
       showConfirmation: false,
       selfieImgSrc: "",
       lookLikeImgSrc: "",
+      lookLikeData: null,
       camInitialized: false,
       borderCompensate: 7, //compensate for red border
       cascadeUrl:
@@ -136,6 +148,7 @@ export default {
     },
 
     takeSnapshot() {
+      this.selfieImgSrc = "";
       // get image data
       let imgData = this.getImageFromCanvas();
       let snapshotOnCanvas = this.getSnapshotOnCanvas(imgData);
@@ -166,13 +179,21 @@ export default {
     },
 
     getSimilarFaces(canvas) {
+      this.error = false;
+      this.lookLikeData = [];
       canvas.toBlob(blob => {
         const faceData = new FormData();
         faceData.append("image", blob, "face_" + new Date().getTime());
-        lookLikeService.getLookALike(faceData).then(faces => {
-          this.showConfirmation = true;
-          this.lookLikeImgSrc = faces[0].similarImage.mediumURL;
-        });
+        lookLikeService
+          .getLookALike(faceData)
+          .then(faces => {
+            this.showConfirmation = true;
+            this.lookLikeData = faces;
+          })
+          .catch(error => {
+            this.error = true;
+            return Promise.reject(error);
+          });
       });
     }
   }
@@ -194,5 +215,32 @@ li {
 }
 a {
   color: #42b983;
+}
+
+.lookAlikesHeadline {
+  margin: 0 0 10px 0;
+  font-weight: bold;
+}
+
+.selfieSnapHeadline {
+  margin: 0 0 34px 0;
+  font-weight: bold;
+}
+
+.selfieSnapImgBox {
+  margin-top: 54px;
+  width: 256px;
+  height: 256px;
+  margin-right: 30px;
+}
+.selfieSnapImg {
+  --x: 50%;
+  --y: 50%;
+  width: 256px;
+  height: 256px;
+  border: 4px solid transparent;
+  background: linear-gradient(#000, #000) padding-box,
+    radial-gradient(farthest-corner at var(--x) var(--y), #5b00c9, #5ec298)
+      border-box;
 }
 </style>
