@@ -47,7 +47,7 @@ export default {
 }
 
 .modal-content {
-  width: 70%;
+  width: 90%;
   box-shadow: 2px 2px 20px 1px rgba(56, 56, 56, 1);
   border-radius: 3px;
   overflow: hidden;
