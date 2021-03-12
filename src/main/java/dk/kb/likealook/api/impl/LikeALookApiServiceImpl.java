@@ -3,6 +3,7 @@ package dk.kb.likealook.api.impl;
 import dk.kb.likealook.api.*;
 import java.util.ArrayList;
 import dk.kb.likealook.model.BoxDto;
+import dk.kb.likealook.model.CollectionDto;
 import dk.kb.likealook.model.ErrorDto;
 import java.io.File;
 import dk.kb.likealook.model.ImageDto;
@@ -98,20 +99,23 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
      * List the available collections
      * 
      * @return <ul>
-      *   <li>code = 200, message = "OK", response = String.class, responseContainer = "List"</li>
+      *   <li>code = 200, message = "OK", response = CollectionDto.class, responseContainer = "List"</li>
       *   </ul>
       * @throws ServiceException when other http codes should be returned
       *
       * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
      */
     @Override
-    public List<String> collectionsGet() throws ServiceException {
+    public List<CollectionDto> collectionsGet() throws ServiceException {
         // TODO: Implement...
     
         
         try{ 
-            List<String> response = new ArrayList<>();
-        response.add("mM7eN");
+            List<CollectionDto> response = new ArrayList<>();
+        CollectionDto item = new CollectionDto();
+        item.setId("S6JT4Y7");
+        item.setDescription("T8C8U00k");
+        response.add(item);
         return response;
         } catch (Exception e){
             throw handleException(e);
@@ -177,9 +181,9 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<SubjectDto> response = new ArrayList<>();
         SubjectDto item = new SubjectDto();
-        item.setSubject("M9PdUo");
-        item.setSourceID("w2wNx");
-        item.setConfidence(2.06012e+38F);
+        item.setSubject("Dfw4w");
+        item.setSourceID("lc3R0f7l");
+        item.setConfidence(1.30411e+38F);
         response.add(item);
         return response;
         } catch (Exception e){
@@ -214,37 +218,38 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<SimilarResponseDto> response = new ArrayList<>();
         SimilarResponseDto item = new SimilarResponseDto();
-        item.setSourceID("uXQ73");
-        item.setSourceURL("a722LPDyR5");
-        item.setDistance(3854700980897652714.506803289904754D);
-        item.setUrl("Z0WGjF9i");
+        item.setSourceID("L53DfbxB4Ra");
+        item.setSourceURL("XXcMt");
+        item.setDistance(7190336368466503876.4275575696772586D);
+        item.setUrl("F5K49b0xgt");
         ImageDto similarImage = new ImageDto();
-        similarImage.setId("P60R6");
-        similarImage.setMicroURL("rE8JS");
-        similarImage.setTinyURL("aYIXl");
-        similarImage.setMediumURL("HCOom");
-        similarImage.setFullURL("jGn23");
-        similarImage.setRawURL("hKSZ1");
-        similarImage.setIiifURL("jx2VJ25MZ");
-        similarImage.setCreationDate("ZPWttE");
-        similarImage.setDataURL("P5027");
+        similarImage.setId("b2l9Fye8");
+        similarImage.setMicroURL("D7cqz");
+        similarImage.setTinyURL("J4wxU");
+        similarImage.setMediumURL("y4hv6X");
+        similarImage.setFullURL("xrU0O");
+        similarImage.setRawURL("acVg60");
+        similarImage.setIiifURL("x1LD7W3");
+        similarImage.setCreationDate("O5kp26Z");
+        similarImage.setDataURL("qF78a");
         item.setSimilarImage(similarImage);
         PersonDto similarPerson = new PersonDto();
-        similarPerson.setFirstName("HwrDj");
-        similarPerson.setLastName("cA36e");
-        similarPerson.setBirthday("kK5mH");
-        similarPerson.setDeathday("YnFDt");
-        similarPerson.setOccupation("i22q3");
+        similarPerson.setFirstName("bpM9Yn");
+        similarPerson.setLastName("mWY87H74");
+        similarPerson.setBirthday("L3yC1F");
+        similarPerson.setDeathday("fDG7bubFw");
+        similarPerson.setOccupation("l75Kc");
         item.setSimilarPerson(similarPerson);
         List<PersonDto> imageCreators = new ArrayList<>();
         PersonDto imageCreators2 = new PersonDto();
-        imageCreators2.setFirstName("KHxXh1");
-        imageCreators2.setLastName("o1o8W6RD");
-        imageCreators2.setBirthday("KtbGjMBB2n");
-        imageCreators2.setDeathday("OjMqMAA7ay");
-        imageCreators2.setOccupation("T1fo8");
+        imageCreators2.setFirstName("Y6U7AF15D");
+        imageCreators2.setLastName("iuiQ4A");
+        imageCreators2.setBirthday("Z7hFev");
+        imageCreators2.setDeathday("t1f7j");
+        imageCreators2.setOccupation("FblFU2S");
         imageCreators.add(imageCreators2);
         item.setImageCreators(imageCreators);
+        item.setTechnote("iNWe14VWOx");
         response.add(item);
         return response;
         } catch (Exception e){
@@ -301,7 +306,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
     
         
         try{ 
-            String response = "g2FAz03";
+            String response = "yU2QyE";
         return response;
         } catch (Exception e){
             throw handleException(e);

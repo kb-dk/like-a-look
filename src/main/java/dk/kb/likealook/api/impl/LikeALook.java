@@ -2,6 +2,7 @@ package dk.kb.likealook.api.impl;
 
 import dk.kb.likealook.api.LikeALookApi;
 import dk.kb.likealook.config.ServiceConfig;
+import dk.kb.likealook.model.CollectionDto;
 import dk.kb.likealook.model.ImageDto;
 import dk.kb.likealook.model.SimilarResponseDto;
 import dk.kb.likealook.model.SubjectDto;
@@ -100,8 +101,15 @@ public class LikeALook implements LikeALookApi {
       * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
      */
     @Override
-    public List<String> collectionsGet() throws ServiceException {
-        return Arrays.asList("daner_mock", "daner_v1");
+    public List<CollectionDto> collectionsGet() throws ServiceException {
+        return Arrays.asList(
+                new CollectionDto().id("daner_mock").description(
+                        "Used for testing calls to the similar-service. " +
+                        "Delivers randomly selected profiles from the DANER collection"),
+                new CollectionDto().id("daner_v1").description(
+                        "Finds the most similar portraits in the DANER collection. " +
+                        "Uses the Wolfram engine for face detection, feature extraction and and similarity distance")
+        );
     }
 
     /**

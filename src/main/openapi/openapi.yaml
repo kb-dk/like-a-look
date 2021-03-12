@@ -67,7 +67,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type: string
+                  $ref: '#/components/schemas/Collection'
 
   /detect/subjects:
     post:
@@ -233,6 +233,20 @@ paths:
                 type: string
 components:
   schemas:
+
+    Collection:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: 'The ID for the collection, used when calling the "similar"-service'
+          example: 'daner_mock'
+        description:
+          type: string
+          description: 'Description of the collection'
+          example: 'Used for testing calls to the similar-service. Delivers randomly selected profiles from the DANER collection'
 
     SimilarResponse:
       type: object
