@@ -264,6 +264,9 @@ components:
           items:
             $ref: '#/components/schemas/Person'
           description: 'The one or more photographers responsible for the similar image'
+        technote:
+          type: string
+          description: 'Free form technical notes, such as which underlying implementation was used for the match'
 
     Person:
       type: object

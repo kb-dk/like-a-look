@@ -1,6 +1,7 @@
 package dk.kb.likealook.api.impl;
 
 import dk.kb.likealook.api.LikeALookApi;
+import dk.kb.likealook.config.ServiceConfig;
 import dk.kb.likealook.model.ImageDto;
 import dk.kb.likealook.model.SimilarResponseDto;
 import dk.kb.likealook.model.SubjectDto;
@@ -34,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -48,8 +50,6 @@ import java.util.Random;
  */
 public class LikeALook implements LikeALookApi {
     private Logger log = LoggerFactory.getLogger(this.toString());
-
-
 
     /* How to access the various web contexts. See https://cxf.apache.org/docs/jax-rs-basics.html#JAX-RSBasics-Contextannotations */
 
@@ -86,6 +86,8 @@ public class LikeALook implements LikeALookApi {
     @Context
     private transient MessageContext messageContext;
 
+    public static final String DEFAULTCOLLECTION_KEY = ".likealook.similar.collections.default";
+    public static final String DEFAULTCOLLECTION_DEFAULT = "daner_mock";
 
     /**
      * List the available collections
@@ -99,7 +101,7 @@ public class LikeALook implements LikeALookApi {
      */
     @Override
     public List<String> collectionsGet() throws ServiceException {
-        return Collections.singletonList("daner");
+        return Arrays.asList("daner_mock", "daner_v1");
     }
 
     /**
@@ -122,9 +124,10 @@ public class LikeALook implements LikeALookApi {
      */
     @Override
     public List<SimilarResponseDto> findSimilarWhole(Attachment imageDetail, String collection, String sourceID, Integer maxMatches) throws ServiceException {
-        if (collection != null && !collection.isEmpty() && !"daner".equals(collection)) {
-            throw new InvalidArgumentServiceException("The collection '" + collection + "' is unknown");
+        if (collection == null || collection.isBlank() || "daner".equals(collection)) { // daner for backwards compatibility
+            collection = ServiceConfig.getConfig().getString(DEFAULTCOLLECTION_KEY, DEFAULTCOLLECTION_DEFAULT);
         }
+
         InputStream imageStream;
         try {
             imageStream = imageDetail.getDataHandler().getInputStream();
@@ -135,7 +138,12 @@ public class LikeALook implements LikeALookApi {
         }
 
         enableCORS();
-        return DANERService.findSimilar(imageStream, sourceID, maxMatches);
+        switch (collection) {
+            case "daner_mock":
+            case "daner_v1":
+                return DANERService.findSimilar(collection, imageStream, sourceID, maxMatches);
+            default: throw new InvalidArgumentServiceException("Unsupported collection '" + collection + "'");
+        }
     }
 
     /**

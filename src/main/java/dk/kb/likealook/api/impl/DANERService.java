@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 /**
  * Special purpose implementation for the DANER project.
@@ -50,6 +51,7 @@ public class DANERService {
 
     public static final String DANER_KEY = ".likealook.daner";
 
+    // .implementation has been superceeded by collection. Ponder the best way of controlling the DANER implementation
     public static final String MOCK_MODE_KEY = ".implementation"; // mock / remote
     public static final String MOCK_MODE_DEFAULT = "mock";
 
@@ -87,7 +89,7 @@ public class DANERService {
         log.info("Created " + this);
     }
 
-    public static List<SimilarResponseDto> findSimilar(InputStream imageStream, String sourceID, Integer maxMatches) {
+    public static List<SimilarResponseDto> findSimilar(String collection, InputStream imageStream, String sourceID, Integer maxMatches) {
         log.info("findSimilar(..., sourceID=" + sourceID + ", maxMatches=" + maxMatches + ") called");
 
         try {
@@ -102,14 +104,13 @@ public class DANERService {
         }
         maxMatches = maxMatches == null ? 10 : maxMatches;
 
-        switch (getInstance().implementation) {
-            case mock: return findSimilarMock(sourceID, maxMatches);
-            case remote: {
+        switch (collection) {
+            case "daner_mock": return findSimilarMock(sourceID, maxMatches);
+            case "daner_v1": {
                 byte[] sourceImage = ResourceHandler.getEphemeral(sourceID).getContent();
                 return findSimilarRemote(sourceID, sourceImage, maxMatches);
             }
-            default: throw new InternalServiceException(
-                    "DANER implementation '" + getInstance().implementation + "' not supported yet");
+            default: throw new InternalServiceException("DANER implementation '" + collection + "' is not known");
         }
     }
 
@@ -126,6 +127,7 @@ public class DANERService {
             item.setDistance(distance);
             item.setSourceID(sourceID);
             item.setSourceURL(ResourceHandler.getResourceURL(ResourceHandler.EPHEMERAL + "/" + sourceID));
+            item.setTechnote("Created by mock service: Result is randomly selected");
             DANERData.fillResponse(item, imageIDs.get(i));
 
             response.add(item);
@@ -135,12 +137,21 @@ public class DANERService {
 
     // https://stackoverflow.com/questions/3324717/sending-http-post-request-in-java
     private static List<SimilarResponseDto> findSimilarRemote(String sourceID, byte[] sourceImage, Integer maxMatches) {
+        //final String sourceURL = ResourceHandler.getResourceURL(ResourceHandler.EPHEMERAL + "/" + sourceID);
+        final String sourceURL = ResourceHandler.getResourceURL(ResourceHandler.EPHEMERAL + "/" + sourceID);
         HttpURLConnection http = prepareConnection();
-        postImage(sourceImage, http);
+        //postImage(sourceImage, http);
+        postString(sourceURL, http);
         List<PersonMatch> personMatches = getPersonMatches(http);
-
-        System.out.println("*** " + personMatches);
-        return null;
+        return personMatches.stream()
+                .sorted()
+                .limit(maxMatches)
+                .map(pm -> new SimilarResponseDto()
+                        .sourceID(pm.getId())
+                        .distance(pm.getDistance())
+                        .technote("Facial similarity by daner_v1 (remote call to Wolfram backed service)"))
+                .peek(DANERData::fillResponse)
+                .collect(Collectors.toList());
     }
 
     private static HttpURLConnection prepareConnection() {
@@ -149,31 +160,41 @@ public class DANERService {
         try {
             url = new URL(getInstance().remoteURL);
         } catch (MalformedURLException e) {
-            throw new InternalServiceException(
-                    "Malformed URL for remote DANER service '" + getInstance().remoteURL + "'", e);
+            throw logThrow("Malformed URL for remote DANER service '" + getInstance().remoteURL + "'", e);
         }
         URLConnection con;
         try {
             con = url.openConnection();
         } catch (IOException e) {
-            throw new InternalServiceException(
-                    "Internal error: Unable to establish connection to URL '" + getInstance().remoteURL + "'", e);
+            throw logThrow("Internal error: Unable to establish connection to URL '" + getInstance().remoteURL + "'", e);
         }
         HttpURLConnection http = (HttpURLConnection)con;
         try {
             http.setRequestMethod("POST"); // PUT is another valid option
         } catch (ProtocolException e) {
-            throw new InternalServiceException(
-                    "Internal error: Unable to set request method POST (this should not happen)", e);
+            throw logThrow("Internal error: Unable to set request method POST (this should not happen)", e);
         }
         http.setDoOutput(true);
-        http.addRequestProperty("Content-Type", "multipart/form-data; boundary=" + DELIMITER);
-        http.setChunkedStreamingMode(0);
+        //http.addRequestProperty("Content-Type", "multipart/form-data; boundary=" + DELIMITER);
+        //http.setChunkedStreamingMode(0);
         http.setDoInput(true);
         http.setDoOutput(true);
+        http.setConnectTimeout(500);
+        http.setReadTimeout(10*1000); // 10 seconds
         return http;
     }
     private static final String DELIMITER = "MultipartDelimiterString";
+
+    private static void postString(String content, HttpURLConnection http) {
+        log.debug("Posting to external service '{}': '{}'",
+                  getInstance().remoteURL, content.length() < 400 ? content : content.substring(0, 397) + "...");
+        try (OutputStream out = http.getOutputStream()) {
+            out.write(content.getBytes(StandardCharsets.UTF_8));
+            out.flush();
+        } catch (IOException e) {
+            throw logThrow("Error calling external DANER service '" + getInstance().remoteURL + "'", e);
+        }
+    }
 
     private static void postImage(byte[] sourceImage, HttpURLConnection http) {
         final long startTime = System.nanoTime();
@@ -188,22 +209,24 @@ public class DANERService {
             out.flush();
             log.debug("Bytes delivered, closing output");
         } catch (IOException e) {
-            throw new InternalServiceException(
-                    "Error calling external DANER service '" + getInstance().remoteURL + "': " + e.getMessage(), e);
+            throw logThrow("Error calling external DANER service '" + getInstance().remoteURL + "'", e);
         }
-
+/*
         int response;
         try {
             log.debug("Retrieving response code");
             response = http.getResponseCode();
+            log.debug("Finished posting image in " + (System.nanoTime()-startTime)/1000000L +
+                      " ms + with response " + response);
         } catch (IOException e) {
-            String message = "Error retrieving response code from call to external DANER service '" +
-                                getInstance().remoteURL + "': " + e.getMessage();
-            log.warn(message, e);
-            throw new InternalServiceException(message, e);
-        }
-        log.debug("Finished posting image in " + (System.nanoTime()-startTime)/1000000L +
-                  " ms + with response " + response);
+            logThrow("Error retrieving response code from call to external DANER service '" +
+                                getInstance().remoteURL + "'", e);
+        }*/
+    }
+
+    private static InternalServiceException logThrow(String message, Exception e) {
+        log.warn(message, e);
+        return new InternalServiceException(message + e.getMessage(), e);
     }
 
     private static List<PersonMatch> getPersonMatches(HttpURLConnection http) {
@@ -213,8 +236,7 @@ public class DANERService {
         try {
             response = http.getInputStream();
         } catch (IOException e) {
-            throw new InternalServiceException(
-                    "Error getting result from POST to external DANER service '" + getInstance().remoteURL + "'", e);
+            throw logThrow("Error getting result from POST to external DANER service '" + getInstance().remoteURL + "'", e);
         }
         log.debug("Finished retrieving response in " + (System.nanoTime()-startTime)/1000000L + " ms");
 
@@ -222,8 +244,7 @@ public class DANERService {
         try {
             json = IOUtils.toString(response, "utf-8");
         } catch (IOException e) {
-            throw new InternalServiceException(
-                    "Error piping result from POST to external DANER service '" + getInstance().remoteURL + "'", e);
+            throw logThrow("Error piping result from POST to external DANER service '" + getInstance().remoteURL + "'", e);
         }
 
         return json2Matches(json);
@@ -264,7 +285,7 @@ public class DANERService {
         public PersonMatch(JSONObject json) {
             //			"id":"DP002205",
             //			"probability":0.762
-            this(json.getString("id"), json.getDouble("probability"));
+            this(json.getString("id"), json.getDouble("distance"));
         }
 
         public PersonMatch(String id, double distance) {
@@ -283,6 +304,11 @@ public class DANERService {
 
         public double getDistance() {
             return distance;
+        }
+
+        @Override
+        public String toString() {
+            return "PersonMatch(id='" + id + "', distance=" + distance + ")";
         }
     }
 

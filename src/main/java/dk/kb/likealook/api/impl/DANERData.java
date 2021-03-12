@@ -99,7 +99,7 @@ public class DANERData {
      * Also assigns URL as a temporary backward-compatibility measure
      * Note that the assignments are shallow copies. Do not modify the added metadata!
      * @param response the response to fill.
-     * @param imageID  the ID for the similarImage, similarPerson and imageCreators data.
+     * @param imageID  the DANER ID used to resolve similarImage, similarPerson and imageCreators data.
      * @return the given response, extended with the relevant information.
      */
     public static SimilarResponseDto fillResponse(SimilarResponseDto response, String imageID) {
@@ -112,6 +112,18 @@ public class DANERData {
         response.setSimilarPerson(data.getSimilarPerson());
         response.setImageCreators(data.getImageCreators());
         return response;
+    }
+
+    /**
+     * Assigns similarImage, similarPerson and imageCreators to the given response.
+     * Also assigns URL as a temporary backward-compatibility measure
+     * Note that the assignments are shallow copies. Do not modify the added metadata!
+     * The imageID used for resolving the data are response.sourceID.
+     * @param response the response to fill.
+     * @return the given response, extended with the relevant information.
+     */
+    public static SimilarResponseDto fillResponse(SimilarResponseDto response) {
+        return fillResponse(response, response.getSourceID());
     }
 
     /**
