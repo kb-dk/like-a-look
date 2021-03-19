@@ -22,13 +22,10 @@
       <center><canvas width="640" height="480"></canvas></center>
     </p>
 
-    <button
-      v-if="camInitialized"
-      class="btn btn-success"
-      @click.prevent="takeSnapshot"
-    >
-      Take Photo
-    </button>
+
+
+    <take-photo-btn @take-snapshot="takeSnapshot" :availableCollections="availableCollections" @set-collection="setCollection" v-if="camInitialized"/>
+    <span>Samling: {{currentCollection}}</span>
   </div>
 </template>
 
@@ -42,13 +39,15 @@ import { lookLikeService } from "../api/looklike-service";
 import Comparison from "./Comparison.vue";
 import MatchedFaces from "./MatchedFaced.vue";
 import ErrorMsg from "./ErrorMsg.vue";
+import TakePhotoBtn from './TakePhotoBtn.vue';
 
 export default {
   name: "FaceCam",
   components: {
     Comparison,
     MatchedFaces,
-    ErrorMsg
+    ErrorMsg,
+    TakePhotoBtn 
   },
   data() {
     return {
@@ -60,6 +59,8 @@ export default {
       lookLikeImgSrc: "",
       lookLikeData: null,
       camInitialized: false,
+      availableCollections:[],
+      currentCollection: '',
       borderCompensate: 7, //compensate for red border
       cascadeUrl:
         "https://raw.githubusercontent.com/nenadmarkus/pico/c2e81f9d23cc11d1a612fd21e4f9de0921a5d0d9/rnt/cascades/facefinder"
@@ -67,11 +68,15 @@ export default {
   },
 
   mounted() {
+    //Get the available collections to search in
+    this.getCollections();
+
     //get the drawing context on the canvas
     this.canvasElement = document
       .getElementsByTagName("canvas")[0]
       .getContext("2d");
     this.initilizeFaceDetection();
+    
   },
   methods: {
     closeConfirmation() {
@@ -185,7 +190,7 @@ export default {
         const faceData = new FormData();
         faceData.append("image", blob, "face_" + new Date().getTime());
         lookLikeService
-          .getLookALike(faceData)
+          .getLookALike(faceData, this.collection)
           .then(faces => {
             this.showConfirmation = true;
             this.lookLikeData = faces;
@@ -195,6 +200,23 @@ export default {
             return Promise.reject(error);
           });
       });
+    },
+
+    setCollection(type) {
+      this.currentCollection = type
+    },
+
+    getCollections(){
+      lookLikeService
+          .getCollections()
+          .then(collections => {
+           this.availableCollections = collections;
+           this.currentCollection = collections[0].id;
+          })
+          .catch(error => {
+            this.error = true;
+            return Promise.reject(error);
+          });
     }
   }
 };
