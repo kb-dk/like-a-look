@@ -21,11 +21,11 @@ import dk.kb.webservice.exception.InternalServiceException;
 import dk.kb.webservice.exception.InvalidArgumentServiceException;
 import org.apache.cxf.helpers.IOUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.json.JsonArray;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -58,6 +58,8 @@ public class DANERService {
     public static final String REMOTE_SERVICE_KEY = ".remote.url";
     public static final String REMOTE_SERVICE_DEFAULT = null;
 
+    public static final String REMOTE_IMAGEURL_KEY = "imageurl";
+
     public enum IMPLEMENTATION {mock, remote}
 
     private static DANERService instance;
@@ -89,7 +91,8 @@ public class DANERService {
         log.info("Created " + this);
     }
 
-    public static List<SimilarResponseDto> findSimilar(String collection, InputStream imageStream, String sourceID, Integer maxMatches) {
+    public static List<SimilarResponseDto> findSimilar(
+            String collection, InputStream imageStream, String sourceID, Integer maxMatches) {
         log.info("findSimilar(..., sourceID=" + sourceID + ", maxMatches=" + maxMatches + ") called");
 
         try {
@@ -136,13 +139,20 @@ public class DANERService {
     }
 
     // https://stackoverflow.com/questions/3324717/sending-http-post-request-in-java
-    private static List<SimilarResponseDto> findSimilarRemote(String sourceID, byte[] sourceImage, Integer maxMatches) {
+    public static List<SimilarResponseDto> findSimilarRemote(String sourceID, byte[] sourceImage, Integer maxMatches) {
         //final String sourceURL = ResourceHandler.getResourceURL(ResourceHandler.EPHEMERAL + "/" + sourceID);
         final String sourceURL = ResourceHandler.getResourceURL(ResourceHandler.EPHEMERAL + "/" + sourceID);
-        HttpURLConnection http = prepareConnection();
-        //postImage(sourceImage, http);
-        postString(sourceURL, http);
-        List<PersonMatch> personMatches = getPersonMatches(http);
+
+        //postImage(sourceImage, preparePOSTConnection());
+        //httpPostString(sourceURL, http);
+        return findSimilarRemote(sourceURL, maxMatches);
+    }
+
+    public static List<SimilarResponseDto> findSimilarRemote(String sourceURL, Integer maxMatches) {
+        //HttpURLConnection http = prepareGETConnection();
+        //httpGetString(sourceURL, http);
+        List<PersonMatch> personMatches = getPersonMatches(httpGetRequest(sourceURL));
+
         return personMatches.stream()
                 .sorted()
                 .limit(maxMatches)
@@ -154,7 +164,40 @@ public class DANERService {
                 .collect(Collectors.toList());
     }
 
-    private static HttpURLConnection prepareConnection() {
+    private static InputStream httpGetRequest(String sourceURL) {
+        final String getURL = getInstance().remoteURL + "/?imageurl=http://localhost/pmd.png";
+        try {
+            URLConnection conn = new URL(getURL).openConnection();
+            return conn.getInputStream();
+        } catch (Exception e) {
+            log.warn("Exception calling '{}'", getURL, e);
+            throw new InternalServiceException("Exception calling '" + getURL + "'");
+        }
+    }
+
+    private static HttpURLConnection prepareGETConnection() {
+        HttpURLConnection http = prepareGenericConnection();
+        try {
+            http.setRequestMethod("GET");
+            http.setDoOutput(false);
+        } catch (ProtocolException e) {
+            throw logThrow("Internal error: Unable to set request method GET (this should not happen)", e);
+        }
+        return http;
+    }
+    private static HttpURLConnection preparePOSTConnection() {
+        HttpURLConnection http = prepareGenericConnection();
+        try {
+            http.setRequestMethod("POST");
+            http.setDoOutput(true);
+        } catch (ProtocolException e) {
+            throw logThrow("Internal error: Unable to set request method POST (this should not happen)", e);
+        }
+        //http.addRequestProperty("Content-Type", "multipart/form-data; boundary=" + DELIMITER);
+        //http.setChunkedStreamingMode(0);
+        return http;
+    }
+    private static HttpURLConnection prepareGenericConnection() {
         log.debug("Preparing HTTP connection to " + getInstance().remoteURL);
         URL url;
         try {
@@ -169,23 +212,20 @@ public class DANERService {
             throw logThrow("Internal error: Unable to establish connection to URL '" + getInstance().remoteURL + "'", e);
         }
         HttpURLConnection http = (HttpURLConnection)con;
-        try {
-            http.setRequestMethod("POST"); // PUT is another valid option
-        } catch (ProtocolException e) {
-            throw logThrow("Internal error: Unable to set request method POST (this should not happen)", e);
-        }
-        http.setDoOutput(true);
-        //http.addRequestProperty("Content-Type", "multipart/form-data; boundary=" + DELIMITER);
-        //http.setChunkedStreamingMode(0);
         http.setDoInput(true);
-        http.setDoOutput(true);
         http.setConnectTimeout(500);
         http.setReadTimeout(10*1000); // 10 seconds
         return http;
     }
     private static final String DELIMITER = "MultipartDelimiterString";
 
-    private static void postString(String content, HttpURLConnection http) {
+    private static void httpGetString(String sourceURL, HttpURLConnection http) {
+        log.debug("GETting from external service '{}': '{}'",
+                  getInstance().remoteURL, sourceURL.length() < 400 ? sourceURL : sourceURL.substring(0, 397) + "...");
+        http.setRequestProperty(REMOTE_IMAGEURL_KEY, sourceURL);
+    }
+
+    private static void httpPostString(String content, HttpURLConnection http) {
         log.debug("Posting to external service '{}': '{}'",
                   getInstance().remoteURL, content.length() < 400 ? content : content.substring(0, 397) + "...");
         try (OutputStream out = http.getOutputStream()) {
@@ -240,6 +280,10 @@ public class DANERService {
         }
         log.debug("Finished retrieving response in " + (System.nanoTime()-startTime)/1000000L + " ms");
 
+        return getPersonMatches(response);
+    }
+
+    private static List<PersonMatch> getPersonMatches(InputStream response) {
         String json;
         try {
             json = IOUtils.toString(response, "utf-8");
@@ -263,7 +307,15 @@ public class DANERService {
         //		}
         //	]
         //}
-        JSONObject json = new JSONObject(jsonStr);
+        JSONObject json;
+        try {
+            json = new JSONObject(jsonStr);
+        } catch (JSONException e) {
+            String message = "Expected JSON from remote DANER server, but got " +
+            (jsonStr.length() > 400 ? jsonStr.substring(0, 397) + "..." : jsonStr);
+            log.warn(message, e);
+            throw new InternalServiceException(message);
+        }
         if (!json.has("portraits")) {
             throw new InvalidArgumentServiceException(
                     "Returned JSON for DANER remote service did not contain entry 'portraits':\n" + jsonStr);
