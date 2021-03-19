@@ -189,8 +189,9 @@ export default {
       canvas.toBlob(blob => {
         const faceData = new FormData();
         faceData.append("image", blob, "face_" + new Date().getTime());
+        faceData.append("collection", this.currentCollection)
         lookLikeService
-          .getLookALike(faceData, this.collection)
+          .getLookALike(faceData)
           .then(faces => {
             this.showConfirmation = true;
             this.lookLikeData = faces;

@@ -6,8 +6,8 @@ export const lookLikeService = {
   getCollections
 };
 
-function getLookALike(snapShot, collectionType) {
-  const callUrl = `${config.apiUrl}/similar?collection=${collectionType}`;
+function getLookALike(snapShot) {
+  const callUrl = `${config.apiUrl}/similar`;
   
   return axios
     .post(callUrl, snapShot, { headers: { "Content-Type": "application/json" } })
