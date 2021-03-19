@@ -32,7 +32,10 @@ public class TestHelper {
         YAML config = YAML.parse(new ByteArrayInputStream(
                 ("likealook:\n" +
                  "  daner:\n" +
-                 "     csv: 'daner_metadata.csv'\n"
+                 "    csv: 'daner_metadata.csv'\n" +
+                 "    implementation: mock\n" +
+                 "    remote:\n" +
+                 "      url: http://localhost:5858\n"
                 ).getBytes(StandardCharsets.UTF_8)));
         ServiceConfig.setConfig(config);
     }

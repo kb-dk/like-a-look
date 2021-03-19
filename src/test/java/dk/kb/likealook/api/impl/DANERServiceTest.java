@@ -1,10 +1,7 @@
 package dk.kb.likealook.api.impl;
 
 import dk.kb.likealook.TestHelper;
-import dk.kb.likealook.model.SimilarResponseDto;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,16 +19,16 @@ import static org.junit.jupiter.api.Assertions.*;
  *  limitations under the License.
  *
  */
-class LikeALookTest {
+class DANERServiceTest {
 
     //@Test
-    void testDANER() {
+    void testRemote() {
+        final String sourceURL = "Needonehere"; // TODO: Find a proper image we can link to
+
         TestHelper.initTestSetup();
 
-        List<SimilarResponseDto> similars = new LikeALook().findSimilarWhole(
-                null, "daner", "dummy", 10);
-        assertEquals(10, similars.size(), "Calling similar for 'daner' should yield the right number of results");
-        System.out.println(similars.get(0));
+        DANERService.findSimilarRemote(sourceURL, 10)
+                .forEach(System.out::println);
     }
 
 }
