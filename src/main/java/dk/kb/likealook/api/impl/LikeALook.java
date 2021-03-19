@@ -102,6 +102,7 @@ public class LikeALook implements LikeALookApi {
      */
     @Override
     public List<CollectionDto> collectionsGet() throws ServiceException {
+        enableCORS();
         return Arrays.asList(
                 new CollectionDto().id("daner_mock").description(
                         "Used for testing calls to the similar-service. " +
