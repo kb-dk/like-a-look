@@ -10,6 +10,7 @@ Very much under development.
 
  * Java 11
  * Maven 3
+ * The Wolfram Engine 12.2 is needed for the face search service
 
 ## Using the project
 
