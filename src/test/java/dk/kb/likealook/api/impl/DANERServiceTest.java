@@ -27,7 +27,7 @@ class DANERServiceTest {
 
         TestHelper.initTestSetup();
 
-        DANERService.findSimilarRemote(sourceURL, 10)
+        DANERService.findSimilarRemote("someID", sourceURL, 10)
                 .forEach(System.out::println);
     }
 
