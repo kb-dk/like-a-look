@@ -24,12 +24,12 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class LikeALookTest {
 
-    //@Test
-    void testDANER() {
+    @Test
+    void testDANERMock() {
         TestHelper.initTestSetup();
 
         List<SimilarResponseDto> similars = new LikeALook().findSimilarWhole(
-                null, "daner", "dummy", 10);
+                null, "daner_mock", "dummy", 10);
         assertEquals(10, similars.size(), "Calling similar for 'daner' should yield the right number of results");
         System.out.println(similars.get(0));
     }

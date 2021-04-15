@@ -95,21 +95,22 @@ public class DANERService {
             String collection, InputStream imageStream, String sourceID, Integer maxMatches) {
         log.info("findSimilar(..., sourceID=" + sourceID + ", maxMatches=" + maxMatches + ") called");
 
-        try {
-            // TODO: Append image extension (jpg/png)
-            sourceID = sourceID == null || sourceID.isBlank() ?
-                    ResourceHandler.createEphemeral(imageStream) :
-                    ResourceHandler.createEphemeral(sourceID, imageStream);
-        } catch (IOException e) {
-            String message = "findSimilarDANER encountered IOException while reading source image";
-            log.warn(message, e);
-            throw new InvalidArgumentServiceException(message, e);
-        }
         maxMatches = maxMatches == null ? 10 : maxMatches;
 
         switch (collection) {
             case "daner_mock": return findSimilarMock(sourceID, maxMatches);
             case "daner_v1": {
+                try {
+                    // TODO: Append image extension (jpg/png)
+                    sourceID = sourceID == null || sourceID.isBlank() ?
+                            ResourceHandler.createEphemeral(imageStream) :
+                            ResourceHandler.createEphemeral(sourceID, imageStream);
+                } catch (IOException e) {
+                    String message = "findSimilarDANER encountered IOException while reading source image";
+                    log.warn(message, e);
+                    throw new InvalidArgumentServiceException(message, e);
+                }
+
                 byte[] sourceImage = ResourceHandler.getEphemeral(sourceID).getContent();
                 return findSimilarRemote(sourceID, sourceImage, maxMatches);
             }
@@ -121,6 +122,9 @@ public class DANERService {
         List<SimilarResponseDto> response = new ArrayList<>();
         Random r = new Random();
         List<String> imageIDs = new ArrayList<>(DANERData.getImageIDs());
+        if (imageIDs.isEmpty()) {
+            throw new InternalServiceException("No images available for mock service");
+        }
         Collections.shuffle(imageIDs, r);
 
         double distance = r.nextDouble();
@@ -145,10 +149,10 @@ public class DANERService {
 
         //postImage(sourceImage, preparePOSTConnection());
         //httpPostString(sourceURL, http);
-        return findSimilarRemote(sourceURL, maxMatches);
+        return findSimilarRemote(sourceID, sourceURL, maxMatches);
     }
 
-    public static List<SimilarResponseDto> findSimilarRemote(String sourceURL, Integer maxMatches) {
+    public static List<SimilarResponseDto> findSimilarRemote(String sourceID, String sourceURL, Integer maxMatches) {
         //HttpURLConnection http = prepareGETConnection();
         //httpGetString(sourceURL, http);
         List<PersonMatch> personMatches = getPersonMatches(httpGetRequest(sourceURL));
@@ -161,11 +165,16 @@ public class DANERService {
                         .distance(pm.getDistance())
                         .technote("Facial similarity by daner_v1 (remote call to Wolfram backed service)"))
                 .peek(DANERData::fillResponse)
+                .map(sr -> sr
+                        .sourceID(sourceID)
+                        .sourceURL(sourceURL))
                 .collect(Collectors.toList());
     }
 
     private static InputStream httpGetRequest(String sourceURL) {
-        final String getURL = getInstance().remoteURL + "/?imageurl=http://localhost/pmd.png";
+        final String getURL = getInstance().remoteURL + "/?imageurl=" + sourceURL;
+        log.debug("Calling HTTP GET for '" + getURL + "'");
+        //final String getURL = getInstance().remoteURL + "/?imageurl=http://localhost/pmd.png";
         try {
             URLConnection conn = new URL(getURL).openConnection();
             return conn.getInputStream();
