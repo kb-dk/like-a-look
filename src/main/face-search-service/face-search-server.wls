@@ -89,14 +89,14 @@ resultJSON[testImagePath_String, n_Integer] := Module[
 	log["## Found "<>ToString@Length@faces<>" faces in image"];
         If[Length @ faces == 0, ExportString[<| "error" -> "Found no face" |>, "JSON"],
 
-	   log["## Extract features from the B/W version of the first found face, and find the nearest "<>ToString@n<>" faces."];
+	   log["## Extract features from the B/W version of all the found faces, and find the nearest "<>ToString@n<>" faces of those."];
 	   
            (* nearestFaces = findNearestPhoto[featureExtractor@ColorConvert[First@faces, "Grayscale"], n]; *)
 	   nearestFaces = findNearestPhoto[featureExtractor@ColorConvert[#, "Grayscale"], n]&/@faces;
 	   
 	   log["## Return a JSON representation"];
 
-	   ExportString[Map[<|"id" -> #[[1]], "distance" -> #[[2]]|> &, #] & /@ nearestFaces,"JSON"]
+	   ExportString[Map[<|"id" -> FileBaseName@FileNameTake@imagePaths[[#[[1]]]], "distance" -> #[[2]]|> &, #] & /@ nearestFaces,"JSON"]
            (* ExportString[ *)
            (*     <| *)
            (*         "portraits" ->  *)
