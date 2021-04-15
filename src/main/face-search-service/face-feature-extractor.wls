@@ -16,8 +16,8 @@
 begin = Now;
 
 (* CONFIGURATION *)
-imageCollectionPlace = "/Users/pmd/KB/GTD/Projekter@KB/DANER/data/itusus";
-extension = "png";
+imageCollectionPlace = "/data/daner/daner-no-copyright";
+extension = "jpg";
 
 noFaceFile   = "images-without-a-face-"<>StringReplace[DateString["ISODateTime"],":"->"."]<>".txt";
 dumpSaveFile = "extracted-features-"<>StringReplace[DateString["ISODateTime"],":"->"."]<>".mx";
