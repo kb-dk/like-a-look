@@ -15,6 +15,8 @@
 package dk.kb.likealook.api.impl;
 
 import dk.kb.likealook.config.ServiceConfig;
+import dk.kb.likealook.model.ElementDto;
+import dk.kb.likealook.model.SimilarDto;
 import dk.kb.likealook.model.SimilarResponseDto;
 import dk.kb.util.yaml.YAML;
 import dk.kb.webservice.exception.InternalServiceException;
@@ -40,6 +42,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -91,7 +94,7 @@ public class DANERService {
         log.info("Created " + this);
     }
 
-    public static List<SimilarResponseDto> findSimilar(
+    public static SimilarResponseDto findSimilar(
             String collection, InputStream imageStream, String sourceID, Integer maxMatches) {
         log.info("findSimilar(..., sourceID=" + sourceID + ", maxMatches=" + maxMatches + ") called");
 
@@ -111,51 +114,54 @@ public class DANERService {
                     throw new InvalidArgumentServiceException(message, e);
                 }
 
-                byte[] sourceImage = ResourceHandler.getEphemeral(sourceID).getContent();
-                return findSimilarRemote(sourceID, sourceImage, maxMatches);
+                //byte[] sourceImage = ResourceHandler.getEphemeral(sourceID).getContent();
+                final String sourceURL = ResourceHandler.getResourceURL(ResourceHandler.EPHEMERAL + "/" + sourceID);
+                return findSimilarRemoteMulti(sourceID, sourceURL, maxMatches);
             }
             default: throw new InternalServiceException("DANER implementation '" + collection + "' is not known");
         }
     }
 
-    private static List<SimilarResponseDto> findSimilarMock(String sourceID, Integer maxMatches) {
-        List<SimilarResponseDto> response = new ArrayList<>();
-        Random r = new Random();
+    private static SimilarResponseDto findSimilarMock(String sourceID, Integer maxMatches) {
+        final int ELEMENTS = 2;
+        final Random r = new Random();
+
         List<String> imageIDs = new ArrayList<>(DANERData.getImageIDs());
         if (imageIDs.isEmpty()) {
             throw new InternalServiceException("No images available for mock service");
         }
         Collections.shuffle(imageIDs, r);
 
-        double distance = r.nextDouble();
-        for (int i = 0; i < maxMatches; i++) {
-            SimilarResponseDto item = new SimilarResponseDto();
-            distance += r.nextDouble();
-            item.setDistance(distance);
-            item.setSourceID(sourceID);
-            item.setSourceURL(ResourceHandler.getResourceURL(ResourceHandler.EPHEMERAL + "/" + sourceID));
-            item.setTechnote("Created by mock service: Result is randomly selected");
-            DANERData.fillResponse(item, imageIDs.get(i));
+        SimilarResponseDto response = new SimilarResponseDto()
+                .sourceID(sourceID)
+                .sourceURL(ResourceHandler.getResourceURL(ResourceHandler.EPHEMERAL + "/" + sourceID))
+                .technote("Created by mock service: Result is randomly selected");
+        List<ElementDto> elements = new ArrayList<>(ELEMENTS);
+        response.setElements(elements);
 
-            response.add(item);
+        for (int e = 0 ; e < ELEMENTS ; e++) {
+            ElementDto element = new ElementDto().index(e);
+            elements.add(element);
+
+            List<SimilarDto> similars = new ArrayList<>(maxMatches);
+            element.setSimilars(similars);
+            double distance = r.nextDouble();
+            for (int s = 0 ; s < maxMatches ; s++) {
+                SimilarDto item = new SimilarDto()
+                        .distance(distance += r.nextDouble());
+                DANERData.fillResponse(item, imageIDs.get((e*maxMatches+s) % imageIDs.size()));
+                similars.add(item);
+            }
         }
+
         return response;
     }
 
-    // https://stackoverflow.com/questions/3324717/sending-http-post-request-in-java
-    public static List<SimilarResponseDto> findSimilarRemote(String sourceID, byte[] sourceImage, Integer maxMatches) {
-        //final String sourceURL = ResourceHandler.getResourceURL(ResourceHandler.EPHEMERAL + "/" + sourceID);
-        final String sourceURL = ResourceHandler.getResourceURL(ResourceHandler.EPHEMERAL + "/" + sourceID);
-
-        //postImage(sourceImage, preparePOSTConnection());
-        //httpPostString(sourceURL, http);
-        return findSimilarRemote(sourceID, sourceURL, maxMatches);
-    }
-
-    public static List<SimilarResponseDto> findSimilarRemote(String sourceID, String sourceURL, Integer maxMatches) {
+    public static List<SimilarResponseDto> findSimilarRemoteSingle(String sourceID, String sourceURL, Integer maxMatches) {
+        throw new UnsupportedOperationException("Deprecated");
         //HttpURLConnection http = prepareGETConnection();
         //httpGetString(sourceURL, http);
-        List<PersonMatch> personMatches = getPersonMatches(httpGetRequest(sourceURL));
+/*        List<PersonMatch> personMatches = getPersonMatchesSingle(httpGetRequest(sourceURL));
 
         return personMatches.stream()
                 .sorted()
@@ -168,6 +174,29 @@ public class DANERService {
                 .map(sr -> sr
                         .sourceID(sourceID)
                         .sourceURL(sourceURL))
+                .collect(Collectors.toList());*/
+    }
+
+    public static SimilarResponseDto findSimilarRemoteMulti(String sourceID, String sourceURL, Integer maxMatches) {
+        return new SimilarResponseDto()
+                .sourceID(sourceID)
+                .sourceURL(sourceURL)
+                .technote("Facial similarity by daner_v1 (remote call to Wolfram backed service")
+                .elements(multiMatchesToElements(getPersonMatchesMulti(httpGetRequest(sourceURL))));
+    }
+
+    private static List<ElementDto> multiMatchesToElements(List<List<PersonMatch>> multiMatches) {
+        AtomicInteger elementID = new AtomicInteger(0);
+        return multiMatches.stream()
+                .map(matches -> new ElementDto()
+                        .index(elementID.getAndIncrement())
+                        .similars(matchesToSimilars(matches)))
+                .collect(Collectors.toList());
+    }
+
+    private static List<SimilarDto> matchesToSimilars(List<PersonMatch> matches) {
+        return matches.stream()
+                .map(match -> DANERData.fillResponse(new SimilarDto().distance(match.getDistance()), match.id))
                 .collect(Collectors.toList());
     }
 
@@ -278,7 +307,7 @@ public class DANERService {
         return new InternalServiceException(message + e.getMessage(), e);
     }
 
-    private static List<PersonMatch> getPersonMatches(HttpURLConnection http) {
+    private static List<PersonMatch> getPersonMatchesSingle(HttpURLConnection http) {
         final long startTime = System.nanoTime();
         log.debug("Retrieving HTTP response");
         InputStream response;
@@ -289,10 +318,10 @@ public class DANERService {
         }
         log.debug("Finished retrieving response in " + (System.nanoTime()-startTime)/1000000L + " ms");
 
-        return getPersonMatches(response);
+        return getPersonMatchesSingle(response);
     }
 
-    private static List<PersonMatch> getPersonMatches(InputStream response) {
+    private static List<PersonMatch> getPersonMatchesSingle(InputStream response) {
         String json;
         try {
             json = IOUtils.toString(response, "utf-8");
@@ -300,10 +329,10 @@ public class DANERService {
             throw logThrow("Error piping result from POST to external DANER service '" + getInstance().remoteURL + "'", e);
         }
 
-        return json2Matches(json);
+        return json2MatchesSingle(json);
     }
 
-    public static List<PersonMatch> json2Matches(String jsonStr) {
+    public static List<PersonMatch> json2MatchesSingle(String jsonStr) {
         // {
         //	"portraits":[
         //		{
@@ -335,6 +364,71 @@ public class DANERService {
             personMatches.add(new PersonMatch(portraits.getJSONObject(i)));
         }
         return personMatches;
+    }
+
+    private static List<List<PersonMatch>> getPersonMatchesMulti(HttpURLConnection http) {
+        final long startTime = System.nanoTime();
+        log.debug("Retrieving HTTP response");
+        InputStream response;
+        try {
+            response = http.getInputStream();
+        } catch (IOException e) {
+            throw logThrow("Error getting result from POST to external DANER service '" + getInstance().remoteURL + "'", e);
+        }
+        log.debug("Finished retrieving response in " + (System.nanoTime()-startTime)/1000000L + " ms");
+
+        return getPersonMatchesMulti(response);
+    }
+
+    private static List<List<PersonMatch>> getPersonMatchesMulti(InputStream response) {
+        String json;
+        try {
+            json = IOUtils.toString(response, "utf-8");
+        } catch (IOException e) {
+            throw logThrow("Error piping result from POST to external DANER service '" + getInstance().remoteURL + "'", e);
+        }
+
+        return json2MatchesMulti(json);
+    }
+
+    public static List<List<PersonMatch>> json2MatchesMulti(String jsonStr) {
+        // [
+        //	[
+        //		{
+        //			"id":"DP038937",
+        //			"distance":4.30669854378983e1
+        //		},
+        //		{
+        //			"id":"DP008594",
+        //			"distance":4.46568637651598e1
+        //		},
+        //		{
+        //			"id":"DP036909",
+        //			"distance":4.478868972806472e1
+        //		}
+        //	]
+        //]
+        JSONObject json;
+        try {
+            json = new JSONObject("{ tmp: " + jsonStr + "}");
+        } catch (JSONException e) {
+            String message = "Expected JSON array from remote DANER server, but got " +
+            (jsonStr.length() > 400 ? jsonStr.substring(0, 397) + "..." : jsonStr);
+            log.warn(message, e);
+            throw new InternalServiceException(message);
+        }
+        JSONArray jsonArray = json.getJSONArray("tmp");
+
+        List<List<PersonMatch>> personMatchesMajor = new ArrayList<>(jsonArray.length());
+        for (int m = 0 ; m < jsonArray.length() ; m++) {
+            JSONArray portraits = jsonArray.getJSONArray(m);
+            List<PersonMatch> personMatches = new ArrayList<>(portraits.length());
+            for (int i = 0 ; i < portraits.length() ; i++) {
+                personMatches.add(new PersonMatch(portraits.getJSONObject(i)));
+            }
+            personMatchesMajor.add(personMatches);
+        }
+        return personMatchesMajor;
     }
 
     public static class PersonMatch implements Comparable<PersonMatch> {

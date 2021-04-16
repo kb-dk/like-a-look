@@ -3,8 +3,6 @@ package dk.kb.likealook.api.impl;
 import dk.kb.likealook.TestHelper;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /*
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,11 +21,12 @@ class DANERServiceTest {
 
     //@Test
     void testRemote() {
-        final String sourceURL = "Needonehere"; // TODO: Find a proper image we can link to
+        // https://commons.wikimedia.org/wiki/Face#/media/File:Aj_young_425625.jpg
+        final String sourceURL = "https://upload.wikimedia.org/wikipedia/commons/6/6f/Christopher_Meloni_croped_face.png";
 
         TestHelper.initTestSetup();
 
-        DANERService.findSimilarRemote("someID", sourceURL, 10)
+        DANERService.findSimilarRemoteSingle("someID", sourceURL, 10)
                 .forEach(System.out::println);
     }
 

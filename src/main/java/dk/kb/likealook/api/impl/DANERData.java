@@ -18,7 +18,8 @@ import au.com.bytecode.opencsv.CSVReader;
 import dk.kb.likealook.config.ServiceConfig;
 import dk.kb.likealook.model.ImageDto;
 import dk.kb.likealook.model.PersonDto;
-import dk.kb.likealook.model.SimilarResponseDto;
+import dk.kb.likealook.model.SimilarDto;
+import dk.kb.likealook.model.SimilarDto;
 import dk.kb.util.Resolver;
 import dk.kb.util.yaml.YAML;
 import dk.kb.webservice.exception.InternalServiceException;
@@ -56,7 +57,7 @@ public class DANERData {
 
     private static DANERData instance;
 
-    private final Map<String, SimilarResponseDto> metadata = new HashMap<>();
+    private final Map<String, SimilarDto> metadata = new HashMap<>();
 
     public static DANERData getInstance() {
         if (instance == null) {
@@ -95,35 +96,29 @@ public class DANERData {
     }
 
     /**
-     * Assigns similarImage, similarPerson and imageCreators to the given response.
-     * Also assigns URL as a temporary backward-compatibility measure
+     * Assigns image, person and creators to the given response.
      * Note that the assignments are shallow copies. Do not modify the added metadata!
      * @param response the response to fill.
-     * @param imageID  the DANER ID used to resolve similarImage, similarPerson and imageCreators data.
+     * @param imageID  the DANER ID used to resolve image, person and creators data.
      * @return the given response, extended with the relevant information.
      */
-    public static SimilarResponseDto fillResponse(SimilarResponseDto response, String imageID) {
-        SimilarResponseDto data = getInstance().metadata.get(imageID);
+    public static SimilarDto fillResponse(SimilarDto response, String imageID) {
+        SimilarDto data = getInstance().metadata.get(imageID);
         if (data == null) {
             throw new InternalServiceException("Error: Unable to locate metadata for imageID '" + imageID + "'");
         }
-        response.setUrl(data.getUrl());
-        response.setSimilarImage(data.getSimilarImage());
-        response.setSimilarPerson(data.getSimilarPerson());
+        response.setImage(data.getImage());
+        response.setPerson(data.getPerson());
         response.setImageCreators(data.getImageCreators());
         return response;
     }
 
-    /**
-     * Assigns similarImage, similarPerson and imageCreators to the given response.
-     * Also assigns URL as a temporary backward-compatibility measure
-     * Note that the assignments are shallow copies. Do not modify the added metadata!
-     * The imageID used for resolving the data are response.sourceID.
-     * @param response the response to fill.
-     * @return the given response, extended with the relevant information.
-     */
-    public static SimilarResponseDto fillResponse(SimilarResponseDto response) {
-        return fillResponse(response, response.getSourceID());
+    public SimilarDto getSimilarImage(String imageID) {
+        SimilarDto data = getInstance().metadata.get(imageID);
+        if (data == null) {
+            throw new InternalServiceException("Error: Unable to locate metadata for imageID '" + imageID + "'");
+        }
+        return data;
     }
 
     /**
@@ -177,10 +172,7 @@ public class DANERData {
     private void addCSVLine(String[] elements) {
         final String baseImage = elements[0];
         final String base = baseImage.replaceAll("[.][a-z]*$", ""); // Remove extension
-        SimilarResponseDto similar = new SimilarResponseDto();
-
-        // Deprecated, so should be removed at some point
-        similar.setUrl(ResourceHandler.getResourceURL(FACE_RESOURCES + "/" + baseImage));
+        SimilarDto similar = new SimilarDto();
 
         ImageDto image = new ImageDto();
         image.setId(base);
@@ -189,7 +181,7 @@ public class DANERData {
         image.setMediumURL(ResourceHandler.getResourceURL(FACE_RESOURCES + "/" + baseImage)); // TODO: Would be better to link to full portrait
         image.setCreationDate(datesToStr(elements[5]));
         image.setDataURL(elements[8]);
-        similar.setSimilarImage(image);
+        similar.setImage(image);
 
         PersonDto person = new PersonDto();
         person.setFirstName(elements[1]);
@@ -197,7 +189,7 @@ public class DANERData {
         person.setBirthday(datesToStr(elements[3]));
         person.setDeathday(datesToStr(elements[4]));
         person.setOccupation(elements[6]);
-        similar.setSimilarPerson(person);
+        similar.setPerson(person);
 
         similar.setImageCreators(
                 Arrays.stream(elements[7].split(" *[|] *"))
