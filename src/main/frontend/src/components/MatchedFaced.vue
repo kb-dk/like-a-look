@@ -1,22 +1,22 @@
 <template>
   <div v-if="matchedFaces">
     <div
-      v-for="(face, i) in matchedFaces.slice(0, 3)"
+      v-for="(face, i) in matchedFaces.elements[0].similars.slice(0, 3)"
       :key="i"
       class="matchedFace"
     >
       <div class="matchedFaceHeadline">
-        {{ face.similarPerson.firstName }} {{ face.similarPerson.lastName }}
+        {{ face.person.firstName }} {{ face.person.lastName }}
       </div>
       <div class="matchedFaceImg">
-        <img :src="face.similarImage.mediumURL" class="portrait" />
+        <img :src="face.image.mediumURL" class="portrait" />
       </div>
       <div class="metaDataBoxBelowPortrait">
         <div>
-          {{ face.similarPerson.occupation }}
+          {{ face.person.occupation }}
         </div>
         <div>
-          {{ face.similarPerson.birthday }} - {{ face.similarPerson.deathday }}
+          {{ face.person.birthday }} - {{ face.person.deathday }}
         </div>
       </div>
     </div>
