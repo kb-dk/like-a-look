@@ -1,7 +1,7 @@
 <template>
   <div v-if="matchedFaces">
     <div
-      v-for="(face, i) in matchedFaces.elements[0].similars.slice(0, 3)"
+      v-for="(face, i) in matchedFaces.slice(0, 3)"
       :key="i"
       class="matchedFace"
     >
