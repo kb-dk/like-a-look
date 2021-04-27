@@ -2,14 +2,17 @@ package dk.kb.likealook.api.impl;
 
 import dk.kb.likealook.api.*;
 import java.util.ArrayList;
+import dk.kb.likealook.model.BoundingBoxDto;
 import dk.kb.likealook.model.BoxDto;
 import dk.kb.likealook.model.CollectionDto;
+import dk.kb.likealook.model.ElementDto;
 import dk.kb.likealook.model.ErrorDto;
 import java.io.File;
 import dk.kb.likealook.model.ImageDto;
 import java.util.List;
 import java.util.Map;
 import dk.kb.likealook.model.PersonDto;
+import dk.kb.likealook.model.SimilarDto;
 import dk.kb.likealook.model.SimilarResponseDto;
 import dk.kb.likealook.model.SubjectDto;
 
@@ -113,8 +116,8 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<CollectionDto> response = new ArrayList<>();
         CollectionDto item = new CollectionDto();
-        item.setId("S6JT4Y7");
-        item.setDescription("T8C8U00k");
+        item.setId("e0ED3V3");
+        item.setDescription("Y6inj");
         response.add(item);
         return response;
         } catch (Exception e){
@@ -181,9 +184,9 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<SubjectDto> response = new ArrayList<>();
         SubjectDto item = new SubjectDto();
-        item.setSubject("Dfw4w");
-        item.setSourceID("lc3R0f7l");
-        item.setConfidence(1.30411e+38F);
+        item.setSubject("Fb08ms8h");
+        item.setSourceID("ZdC66");
+        item.setConfidence(-4.68295e+37F);
         response.add(item);
         return response;
         } catch (Exception e){
@@ -204,53 +207,65 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
      * @param maxMatches: The maximum number of similar images to return
      * 
      * @return <ul>
-      *   <li>code = 200, message = "An array of metadata for similar images, including URLs for the images", response = SimilarResponseDto.class, responseContainer = "List"</li>
+      *   <li>code = 200, message = "An array of metadata for similar images, including URLs for the images", response = SimilarResponseDto.class</li>
       *   </ul>
       * @throws ServiceException when other http codes should be returned
       *
       * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
      */
     @Override
-    public List<SimilarResponseDto> findSimilarWhole( Attachment imageDetail, String collection, String sourceID, Integer maxMatches) throws ServiceException {
+    public SimilarResponseDto findSimilarWhole( Attachment imageDetail, String collection, String sourceID, Integer maxMatches) throws ServiceException {
         // TODO: Implement...
     
         
         try{ 
-            List<SimilarResponseDto> response = new ArrayList<>();
-        SimilarResponseDto item = new SimilarResponseDto();
-        item.setSourceID("L53DfbxB4Ra");
-        item.setSourceURL("XXcMt");
-        item.setDistance(7190336368466503876.4275575696772586D);
-        item.setUrl("F5K49b0xgt");
-        ImageDto similarImage = new ImageDto();
-        similarImage.setId("b2l9Fye8");
-        similarImage.setMicroURL("D7cqz");
-        similarImage.setTinyURL("J4wxU");
-        similarImage.setMediumURL("y4hv6X");
-        similarImage.setFullURL("xrU0O");
-        similarImage.setRawURL("acVg60");
-        similarImage.setIiifURL("x1LD7W3");
-        similarImage.setCreationDate("O5kp26Z");
-        similarImage.setDataURL("qF78a");
-        item.setSimilarImage(similarImage);
-        PersonDto similarPerson = new PersonDto();
-        similarPerson.setFirstName("bpM9Yn");
-        similarPerson.setLastName("mWY87H74");
-        similarPerson.setBirthday("L3yC1F");
-        similarPerson.setDeathday("fDG7bubFw");
-        similarPerson.setOccupation("l75Kc");
-        item.setSimilarPerson(similarPerson);
+            SimilarResponseDto response = new SimilarResponseDto();
+        response.setSourceID("Sc1bA");
+        response.setSourceURL("Aj4KZOa");
+        List<ElementDto> elements = new ArrayList<>();
+        ElementDto elements2 = new ElementDto();
+        elements2.setIndex(-1893703171);
+        BoundingBoxDto boundingBox = new BoundingBoxDto();
+        boundingBox.setX(496700471);
+        boundingBox.setY(-387764643);
+        boundingBox.setWidth(799859747);
+        boundingBox.setHeight(737405172);
+        elements2.setBoundingBox(boundingBox);
+        List<SimilarDto> similars = new ArrayList<>();
+        SimilarDto similars2 = new SimilarDto();
+        similars2.setDistance(-5950959864781651995.11865679473662818D);
+        ImageDto image = new ImageDto();
+        image.setId("z22JtQ91");
+        image.setMicroURL("dA6DB8");
+        image.setTinyURL("K231iQ");
+        image.setMediumURL("WXw2EX");
+        image.setFullURL("mBTWv");
+        image.setRawURL("oumHb");
+        image.setIiifURL("G83c9rQVo");
+        image.setCreationDate("eQFwmx");
+        image.setDataURL("y7otUd");
+        similars2.setImage(image);
+        PersonDto person = new PersonDto();
+        person.setFirstName("iV5AdLtELR");
+        person.setLastName("Ab8GvpOQ5");
+        person.setBirthday("c03Za8");
+        person.setDeathday("cm1LR4");
+        person.setOccupation("SwbV6");
+        similars2.setPerson(person);
         List<PersonDto> imageCreators = new ArrayList<>();
         PersonDto imageCreators2 = new PersonDto();
-        imageCreators2.setFirstName("Y6U7AF15D");
-        imageCreators2.setLastName("iuiQ4A");
-        imageCreators2.setBirthday("Z7hFev");
-        imageCreators2.setDeathday("t1f7j");
-        imageCreators2.setOccupation("FblFU2S");
+        imageCreators2.setFirstName("NK7261");
+        imageCreators2.setLastName("CL7U7");
+        imageCreators2.setBirthday("r0j1A");
+        imageCreators2.setDeathday("GgAnx");
+        imageCreators2.setOccupation("jMuTX");
         imageCreators.add(imageCreators2);
-        item.setImageCreators(imageCreators);
-        item.setTechnote("iNWe14VWOx");
-        response.add(item);
+        similars2.setImageCreators(imageCreators);
+        similars.add(similars2);
+        elements2.setSimilars(similars);
+        elements.add(elements2);
+        response.setElements(elements);
+        response.setTechnote("IyrY3o09ug");
         return response;
         } catch (Exception e){
             throw handleException(e);
@@ -306,7 +321,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
     
         
         try{ 
-            String response = "yU2QyE";
+            String response = "e2P80aJ4";
         return response;
         } catch (Exception e){
             throw handleException(e);

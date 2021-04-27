@@ -194,7 +194,7 @@ export default {
           .getLookALike(faceData)
           .then(faces => {
             this.showConfirmation = true;
-            this.lookLikeData = faces;
+            this.lookLikeData = faces.elements[0].similars;
           })
           .catch(error => {
             this.error = true;

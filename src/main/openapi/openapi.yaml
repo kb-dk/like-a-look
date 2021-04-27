@@ -50,9 +50,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SimilarResponse'
+                $ref: '#/components/schemas/SimilarResponse'
 
   /collections:
     get:
@@ -251,7 +249,7 @@ components:
     SimilarResponse:
       type: object
       required:
-        - similarImage
+        - elements
       properties:
         sourceID:
           type: string
@@ -261,26 +259,52 @@ components:
           type: string
           description: 'The URL for the source image, if the source was temporarily stored. Note: Even if an URL is present, the content might have expired at call time!'
           example: 'http://example.com/like-a-liik/api/resource/ephemeral/b1690f11-7646-43b2-9911-611c2b427f0e.jpg'
+        elements:
+          type: array
+          description: 'The elements detected in the source image. E.g. for facial similarity there will be an entry for each face on the image'
+          items:
+            $ref: '#/components/schemas/Element'
+        technote:
+          type: string
+          description: 'Free form technical notes, such as which underlying implementation was used for the match'
+
+    Element:
+      type: object
+      required:
+        - index
+        - similars
+      properties:
+        index:
+          type: integer
+          format: int32
+          description: 'The detected element index, starting from 0'
+        boundingBox:
+          $ref: '#/components/schemas/BoundingBox'
+        similars:
+          type: array
+          description: 'The images similar to the detected area of the source image'
+          items:
+            $ref: '#/components/schemas/Similar'
+
+    Similar:
+      type: object
+      required:
+        - image
+      properties:
         distance:
           type: number
           format: double
-          description: 'The similarity distance from 0 to 1. Lower is better. 0 is identical'
+          description: 'The similarity distance to the sourceURL, lower values means more similar, 0 is identical'
           example: 0.345
-        url:
-          type: string
-          description: 'Deprecated in favor of .similarImage.mediumURL'
-        similarImage:
+        image:
           $ref: '#/components/schemas/Image'
-        similarPerson:
+        person:
           $ref: '#/components/schemas/Person'
         imageCreators:
           type: array
           items:
             $ref: '#/components/schemas/Person'
-          description: 'The one or more photographers responsible for the similar image'
-        technote:
-          type: string
-          description: 'Free form technical notes, such as which underlying implementation was used for the match'
+          description: 'The one or more photographers responsible for creating the similar image'
 
     Person:
       type: object
@@ -291,7 +315,7 @@ components:
           example: 'Alfred'
         lastName:
           type: string
-          description: 'The first name of the person'
+          description: 'The last name of the person'
           example: 'Lehmann'
         birthday:
           type: string
@@ -379,6 +403,27 @@ components:
         height:
           type: integer
           description: 'The height of the bounding box for the face'
+
+    BoundingBox:
+      type: object
+      required:
+        - x
+        - y
+        - width
+        - height
+      properties:
+        x:
+          type: integer
+          description: 'The x coordinate for the bounding box'
+        y:
+          type: integer
+          description: 'The y coordinate for the boundng box. The top of the image is 0'
+        width:
+          type: integer
+          description: 'The width of the bounding box'
+        height:
+          type: integer
+          description: 'The height of the bounding box'
 
     Subject:
       type: object
