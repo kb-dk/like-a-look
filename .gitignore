@@ -2,7 +2,7 @@
 .classpath
 .project
 .settings/
-
+**/.DS_Store
 .openapi-generator/
 LikeALookApiServiceImpl.java
 like-a-look-te.yaml
