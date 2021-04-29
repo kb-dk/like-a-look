@@ -132,25 +132,27 @@ public class LikeALook implements LikeALookApi {
       * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
      */
     @Override
-    public List<SimilarResponseDto> findSimilarWhole(Attachment imageDetail, String collection, String sourceID, Integer maxMatches) throws ServiceException {
+    public SimilarResponseDto findSimilarWhole( Attachment imageDetail, String collection, String sourceID, Integer maxMatches) throws ServiceException {
         if (collection == null || collection.isBlank() || "daner".equals(collection)) { // daner for backwards compatibility
             collection = ServiceConfig.getConfig().getString(DEFAULTCOLLECTION_KEY, DEFAULTCOLLECTION_DEFAULT);
-        }
-
-        InputStream imageStream;
-        try {
-            imageStream = imageDetail.getDataHandler().getInputStream();
-        } catch (IOException e) {
-            String message = "findSimilarDANER encountered IOException while getting InputStream for image";
-            log.warn(message, e);
-            throw new InvalidArgumentServiceException(message, e);
         }
 
         enableCORS();
         switch (collection) {
             case "daner_mock":
-            case "daner_v1":
+                return DANERService.findSimilar(collection, null, sourceID == null || sourceID.isBlank() ? "mockSource" : sourceID, maxMatches);
+            case "daner_v1": {
+                InputStream imageStream;
+                try {
+                    imageStream = imageDetail.getDataHandler().getInputStream();
+                } catch (IOException e) {
+                    String message = "findSimilarDANER encountered IOException while getting InputStream for image";
+                    log.warn(message, e);
+                    throw new InvalidArgumentServiceException(message, e);
+                }
+
                 return DANERService.findSimilar(collection, imageStream, sourceID, maxMatches);
+            }
             default: throw new InvalidArgumentServiceException("Unsupported collection '" + collection + "'");
         }
     }

@@ -17,7 +17,9 @@ begin = Now;
 
 (* CONFIGURATION *)
 
-featuresFile = "extracted-features-2021-03-21T20.04.48.mx";
+featuresFile = "extracted-features-2021-03-21T13.20.00.mx";
+featuresFile = "extracted-features-2021-03-21T20.33.31.mx";
+featuresFile = "extracted-features-2021-03-22T13.59.09.mx";
 
 (* Default domain and port *)
 domain="127.0.0.1";
@@ -34,6 +36,7 @@ logString[s_String] := Module[
   <> StringRepeat[" ", 38 - Ceiling[len/2]]
   <> "##"
 ]
+log[s_String] := Print[DateString["ISODateTime"]<>" - "<>s]
 
 Print[StringRepeat["#",80]]
 Print[logString@""]
@@ -77,29 +80,33 @@ resultJSON[testImagePath_String, n_Integer] := Module[
     {image, faces, transformedFace, nearestFaces},
 
     Catch[image = Import[testImagePath, "PNG"]];
-    Print["## Image loaded: "<>ToString@Head@image];
+    log["## Image loaded: "<>ToString@Head@image];
 
-    If[Not[Head@image === Image], Print[logString@"!! ERROR !!"]; Print["## Unable to process image"];ExportString[<|"error"->"Unable to import PNG file."|>,"JSON"],
+    If[Not[Head@image === Image], log[logString@"!! ERROR !!"]; log["## Unable to process image"];ExportString[<|"error"->"Unable to import PNG file."|>,"JSON"],
 
-	Print["## Look for faces"];
+	log["## Look for faces"];
         faces = FaceAlign[image, Automatic, {224,224}];
-	Print["## Found "<>ToString@Length@faces<>" faces in image"];
+	log["## Found "<>ToString@Length@faces<>" faces in image"];
         If[Length @ faces == 0, ExportString[<| "error" -> "Found no face" |>, "JSON"],
 
-	   Print["## Extract features from the B/W version of the first found face, and find the nearest "<>ToString@n<>" faces."];
-           nearestFaces = findNearestPhoto[featureExtractor@ColorConvert[First@faces, "Grayscale"], n];
+	   log["## Extract features from the B/W version of all the found faces, and find the nearest "<>ToString@n<>" faces of those."];
+	   
+           (* nearestFaces = findNearestPhoto[featureExtractor@ColorConvert[First@faces, "Grayscale"], n]; *)
+	   nearestFaces = findNearestPhoto[featureExtractor@ColorConvert[#, "Grayscale"], n]&/@faces;
+	   
+	   log["## Return a JSON representation"];
 
-	   Print["## Return a JSON representation"];
-           ExportString[
-               <|
-                   "portraits" -> 
-                      Map[
-                           <|"id" -> FileBaseName@FileNameTake@imagePaths[[#[[1]]]], 
-                             "distance" -> #[[2]]
-                            |> &, 
-                          nearestFaces
-                      ]
-               |>, "JSON"]
+	   ExportString[Map[<|"id" -> FileBaseName@FileNameTake@imagePaths[[#[[1]]]], "distance" -> #[[2]]|> &, #] & /@ nearestFaces,"JSON"]
+           (* ExportString[ *)
+           (*     <| *)
+           (*         "portraits" ->  *)
+           (*            Map[ *)
+           (*                 <|"id" -> FileBaseName@FileNameTake@imagePaths[[#[[1]]]],  *)
+           (*                   "distance" -> #[[2]] *)
+           (*                  |> &,  *)
+           (*                nearestFaces *)
+           (*            ] *)
+           (*     |>, "JSON"] *)
       ]
    ]
 ]
@@ -118,10 +125,10 @@ listener = SocketListen[
     begin = Now;
 
     parameters = Association@request["Query"];
-    Print["## Recieved request: "<>ToString@parameters];
+    log["## Recieved request: "<>ToString@parameters];
 
     result = ExportString[<|"error"->"No data produced"|>,"JSON"];
-    If[Not[KeyExistsQ[parameters,"imageurl"]], Print["## ERROR: No URL parameter"],
+    If[Not[KeyExistsQ[parameters,"imageurl"]], log["## ERROR: No URL parameter"],
             imageUrl = parameters["imageurl"];
             result = resultJSON[imageUrl,3];
     ];
@@ -139,7 +146,7 @@ listener = SocketListen[
 
     WriteString[client, response];
     Close[client]
-    Print["## Request processed in "<>ToString[Now-begin]]
+    log["## Request processed in "<>ToString[Now-begin]]
     ]
    ]
   ];

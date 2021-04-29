@@ -26,23 +26,12 @@ public class ServiceConfig {
      * @throws IOException if the configuration could not be loaded or parsed.
      */
     public static synchronized void initialize(String configFile) throws IOException {
-        serviceConfig = new YAML(configFile);
-    }
-
-    /**
-     * Demonstration of a first-class property, meaning that an explicit method has been provided.
-     * @see #getConfig() for alternative.
-     * @return the "Hello World" lines defined in the config file.
-     */
-    public static List<String> getHelloLines() {
-        List<String> lines = serviceConfig.getList("config.helloLines");
-        return lines;
+        serviceConfig = YAML.resolveLayeredConfigs(configFile);
     }
 
     /**
      * Direct access to the backing YAML-class is used for configurations with more flexible content
      * and/or if the service developer prefers key-based property access.
-     * @see #getHelloLines() for alternative.
      * @return the backing YAML-handler for the configuration.
      */
     public static YAML getConfig() {

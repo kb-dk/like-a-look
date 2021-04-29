@@ -1,6 +1,7 @@
 package dk.kb.likealook.api.impl;
 
 import dk.kb.likealook.TestHelper;
+import dk.kb.likealook.model.SimilarDto;
 import dk.kb.likealook.model.SimilarResponseDto;
 import org.junit.jupiter.api.Test;
 
@@ -24,14 +25,15 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class LikeALookTest {
 
-    //@Test
-    void testDANER() {
+    @Test
+    void testDANERMock() {
         TestHelper.initTestSetup();
 
-        List<SimilarResponseDto> similars = new LikeALook().findSimilarWhole(
-                null, "daner", "dummy", 10);
+        SimilarResponseDto similarResponse = new LikeALook().findSimilarWhole(
+                null, "daner_mock", "dummy", 10);
+        List<SimilarDto> similars = similarResponse.getElements().get(0).getSimilars();
         assertEquals(10, similars.size(), "Calling similar for 'daner' should yield the right number of results");
-        System.out.println(similars.get(0));
+        System.out.println(similarResponse);
     }
 
 }

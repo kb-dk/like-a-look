@@ -1,6 +1,6 @@
 # Face search services for like-a-look
 
-A collection of three scriptt.
+A collection of three scripts.
 
 ## face-feature-extractor.wls
 
