@@ -3,7 +3,6 @@ package dk.kb.likealook.api.impl;
 import dk.kb.likealook.api.LikeALookApi;
 import dk.kb.likealook.config.ServiceConfig;
 import dk.kb.likealook.model.CollectionDto;
-import dk.kb.likealook.model.ImageDto;
 import dk.kb.likealook.model.SimilarResponseDto;
 import dk.kb.likealook.model.SubjectDto;
 import dk.kb.likealook.util.JSONArrayStream;
@@ -35,12 +34,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 
 // TODO: Accept JPEG & PNG, directly or base64. See teams for sample of base64
 // TODO: Consider using https://github.com/tzolov/mtcnn-java for face detection
@@ -109,7 +105,10 @@ public class LikeALook implements LikeALookApi {
                         "Delivers randomly selected profiles from the DANER collection"),
                 new CollectionDto().id("daner_v1").description(
                         "Finds the most similar portraits in the DANER collection. " +
-                        "Uses the Wolfram engine for face detection, feature extraction and and similarity distance")
+                        "Uses the Wolfram engine through the Wolfram service framework for face detection, feature extraction and and similarity distance"),
+                new CollectionDto().id("daner_v2").description(
+                        "Finds the most similar portraits in the DANER collection. " +
+                        "Uses the Wolfram engine called directly from Java for face detection, feature extraction and and similarity distance")
         );
     }
 
@@ -141,7 +140,8 @@ public class LikeALook implements LikeALookApi {
         switch (collection) {
             case "daner_mock":
                 return DANERService.findSimilar(collection, null, sourceID == null || sourceID.isBlank() ? "mockSource" : sourceID, maxMatches);
-            case "daner_v1": {
+            case "daner_v1":
+            case "daner_v2": {
                 InputStream imageStream;
                 try {
                     imageStream = imageDetail.getDataHandler().getInputStream();
@@ -153,7 +153,9 @@ public class LikeALook implements LikeALookApi {
 
                 return DANERService.findSimilar(collection, imageStream, sourceID, maxMatches);
             }
-            default: throw new InvalidArgumentServiceException("Unsupported collection '" + collection + "'");
+            default: throw new InvalidArgumentServiceException(
+                    "The collection '" + collection + "' is unsupported. " +
+                    "Valid collections are daner_mock, daner_v1 and daner_v2");
         }
     }
 

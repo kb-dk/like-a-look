@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 public class TestHelper {
     private static final Logger log = LoggerFactory.getLogger(TestHelper.class);
 
+    // TODO: We should load the same setup as jetty does!
     public static void initTestSetup() {
         YAML config = YAML.parse(new ByteArrayInputStream(
                 ("likealook:\n" +
@@ -35,7 +36,9 @@ public class TestHelper {
                  "    csv: 'daner_metadata.csv'\n" +
                  "    implementation: mock\n" +
                  "    remote:\n" +
-                 "      url: http://localhost:5858\n"
+                 "      url: http://localhost:5858\n" +
+                 "    remote2:\n" +
+                 "      url: http://localhost:8234/daner-face-search/v1/similarFaces\n"
                 ).getBytes(StandardCharsets.UTF_8)));
         ServiceConfig.setConfig(config);
     }

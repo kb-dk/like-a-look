@@ -22,6 +22,7 @@ import dk.kb.util.yaml.YAML;
 import dk.kb.webservice.exception.InternalServiceException;
 import dk.kb.webservice.exception.InvalidArgumentServiceException;
 import org.apache.cxf.helpers.IOUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,6 +35,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -44,6 +46,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Special purpose implementation for the DANER project.
@@ -58,8 +61,11 @@ public class DANERService {
     public static final String MOCK_MODE_KEY = ".implementation"; // mock / remote
     public static final String MOCK_MODE_DEFAULT = "mock";
 
-    public static final String REMOTE_SERVICE_KEY = ".remote.url";
-    public static final String REMOTE_SERVICE_DEFAULT = null;
+    public static final String REMOTE_V1_SERVICE_KEY = ".remote.url";
+    public static final String REMOTE_V1_SERVICE_DEFAULT = null;
+
+    public static final String REMOTE_V2_SERVICE_KEY = ".remote2.url";
+    public static final String REMOTE_V2_SERVICE_DEFAULT = null;
 
     public static final String REMOTE_IMAGEURL_KEY = "imageurl";
 
@@ -69,6 +75,7 @@ public class DANERService {
 
     private final IMPLEMENTATION implementation;
     private final String remoteURL;
+    private final String remoteURL2;
 
     public static DANERService getInstance() {
         if (instance == null) {
@@ -85,24 +92,28 @@ public class DANERService {
             log.info("Skipping setup of DANERService as '{}' does not exist in configuration", DANER_KEY);
             implementation = null;
             remoteURL = null;
+            remoteURL2 = null;
             return;
         }
 
         YAML danerConf = config.getSubMap(DANER_KEY);
         implementation = IMPLEMENTATION.valueOf(danerConf.getString(MOCK_MODE_KEY, MOCK_MODE_DEFAULT));
-        remoteURL = danerConf.getString(REMOTE_SERVICE_KEY, REMOTE_SERVICE_DEFAULT);
+        remoteURL = danerConf.getString(REMOTE_V1_SERVICE_KEY, REMOTE_V1_SERVICE_DEFAULT);
+        remoteURL2 = danerConf.getString(REMOTE_V2_SERVICE_KEY, REMOTE_V2_SERVICE_DEFAULT);
         log.info("Created " + this);
     }
 
     public static SimilarResponseDto findSimilar(
             String collection, InputStream imageStream, String sourceID, Integer maxMatches) {
-        log.info("findSimilar(..., sourceID=" + sourceID + ", maxMatches=" + maxMatches + ") called");
+        log.info("findSimilar(collection={}, ..., sourceID={}, maxMatches={}) called",
+                 collection, sourceID, maxMatches);
 
         maxMatches = maxMatches == null ? 10 : maxMatches;
 
         switch (collection) {
             case "daner_mock": return findSimilarMock(sourceID, maxMatches);
-            case "daner_v1": {
+            case "daner_v1":
+            case "daner_v2": {
                 try {
                     // TODO: Append image extension (jpg/png)
                     sourceID = sourceID == null || sourceID.isBlank() ?
@@ -116,7 +127,9 @@ public class DANERService {
 
                 //byte[] sourceImage = ResourceHandler.getEphemeral(sourceID).getContent();
                 final String sourceURL = ResourceHandler.getResourceURL(ResourceHandler.EPHEMERAL + "/" + sourceID);
-                return findSimilarRemoteMulti(sourceID, sourceURL, maxMatches);
+                return "daner_v1".equals(collection) ?
+                        findSimilarRemoteMulti(sourceID, sourceURL, maxMatches) :
+                        findSimilarRemoteMultiV2(sourceID, sourceURL, maxMatches);
             }
             default: throw new InternalServiceException("DANER implementation '" + collection + "' is not known");
         }
@@ -177,11 +190,84 @@ public class DANERService {
                 .collect(Collectors.toList());*/
     }
 
+    /* ************************************************************************************************************** */
+
+    static SimilarResponseDto findSimilarRemoteMultiV2(String sourceID, String sourceURL, Integer maxMatches) {
+        if (getInstance().remoteURL2 == null) {
+            throw new InternalServiceException("daner_v2 remote key is not configured");
+        }
+        return new SimilarResponseDto()
+                .sourceID(sourceID)
+                .sourceURL(sourceURL)
+                .technote("Facial similarity by daner_v2 (remote call to Java wrapped Wolfram script)")
+                .elements(multiResponseV2ToDto(httpGetRequestV2(sourceURL, maxMatches)));
+    }
+
+    private static InputStream httpGetRequestV2(String sourceURL, Integer maxMatches) {
+        // http://localhost:8234/daner-face-search/v1/similarFaces?imageURL=http%3A%2F%2Flocalhost%3A8234%2Fdaner-face-search%2Fthispersondoesnotexist.com.jpg&maxMatches=10
+        final URL getURL;
+        try {
+            URIBuilder urlBuilder = new URIBuilder(getInstance().remoteURL2).addParameter("imageURL", sourceURL);
+            if (maxMatches != null) {
+                urlBuilder.addParameter("maxMatches", maxMatches.toString());
+            }
+            getURL = urlBuilder.build().toURL();
+        } catch (URISyntaxException | MalformedURLException e) {
+            throw new InternalServiceException(
+                    "Unable to build URL to remote call for image '" + sourceURL + "' and maxMatches " + maxMatches, e);
+        }
+        log.debug("Calling HTTP GET for '" + getURL + "'");
+        //final String getURL = getInstance().remoteURL + "/?imageurl=http://localhost/pmd.png";
+        try {
+            URLConnection conn = getURL.openConnection();
+            return conn.getInputStream();
+        } catch (Exception e) {
+            log.warn("Exception calling '{}'", getURL, e);
+            throw new InternalServiceException("Exception calling '" + getURL + "'");
+        }
+    }
+
+    private static List<ElementDto> multiResponseV2ToDto(InputStream response) {
+        JSONObject json;
+        try {
+            json = new JSONObject(IOUtils.toString(response, "utf-8"));
+        } catch (IOException e) {
+            throw logThrow("Error piping result from GET to external DANER service v2'"
+                           + getInstance().remoteURL2 + "'", e);
+        }
+        // {"technote":"Wolfram script through Java","imageURL":"http://localhost:8234/daner-face-search/thispersondoesnotexist.com.jpg","faces":[{"boundingBox":null,"similars":[{"distance":54.06735012891766,"id":"DP032144"},{"distance":54.07278819251751,"id":"DP010461"},{"distance":57.71844987155849,"id":"DP036224"},{"distance":57.75755779511265,"id":"DP039198"},{"distance":58.682492068468754,"id":"DP032419"},{"distance":59.09122417712019,"id":"DP014344"},{"distance":59.886375295850556,"id":"DP017944"},{"distance":60.3829732735677,"id":"DP017734"},{"distance":60.6063962670953,"id":"DP019333"},{"distance":61.03964990454093,"id":"DP011139"}],"index":0}]}
+        return StreamSupport.stream(json.getJSONArray("faces").spliterator(), false)
+                .map(faceO -> jsonFaceToElementDto((JSONObject)faceO))
+                .collect(Collectors.toList());
+    }
+
+    // TODO: Handle BoundingBox if present
+    private static ElementDto jsonFaceToElementDto(JSONObject face) {
+        // {"boundingBox":null,"similars":[{"distance":54.06735012891766,"id":"DP032144"},{"distance":54.07278819251751,"id":"DP010461"},{"distance":57.71844987155849,"id":"DP036224"},{"distance":57.75755779511265,"id":"DP039198"},{"distance":58.682492068468754,"id":"DP032419"},{"distance":59.09122417712019,"id":"DP014344"},{"distance":59.886375295850556,"id":"DP017944"},{"distance":60.3829732735677,"id":"DP017734"},{"distance":60.6063962670953,"id":"DP019333"},{"distance":61.03964990454093,"id":"DP011139"}],"index":0}
+        return new ElementDto()
+                .index(face.getInt("index"))
+                .similars(StreamSupport.stream(face.getJSONArray("similars").spliterator(), false)
+                        .map(similarO -> jsonSimilarToSimilarDto((JSONObject)similarO))
+                        .collect(Collectors.toList()));
+    }
+
+    private static SimilarDto jsonSimilarToSimilarDto(JSONObject similar) {
+        // {"distance":54.06735012891766,"id":"DP032144"}
+        return DANERData.fillResponse(new SimilarDto().distance(similar.getDouble("distance")),
+                                      similar.getString("id"));
+    }
+
+
+    // http://localhost:8234/daner-face-search/v1/similarFaces?imageURL=http%3A%2F%2Flocalhost%3A8234%2Fdaner-face-search%2Fthispersondoesnotexist.com.jpg&maxMatches=10
+    // {"imageURL":"http://localhost:8234/daner-face-search/thispersondoesnotexist.com.jpg","faces":[{"index":0,"boundingBox":null,"similars":[{"distance":54.06735012891766,"id":"DP032144"},{"distance":54.07278819251751,"id":"DP010461"},{"distance":57.71844987155849,"id":"DP036224"},{"distance":57.75755779511265,"id":"DP039198"},{"distance":58.682492068468754,"id":"DP032419"},{"distance":59.09122417712019,"id":"DP014344"},{"distance":59.886375295850556,"id":"DP017944"},{"distance":60.3829732735677,"id":"DP017734"},{"distance":60.6063962670953,"id":"DP019333"},{"distance":61.03964990454093,"id":"DP011139"}]}],"technote":"Wolfram script through Java"}
+
+    /* ************************************************************************************************************** */
+
     public static SimilarResponseDto findSimilarRemoteMulti(String sourceID, String sourceURL, Integer maxMatches) {
         return new SimilarResponseDto()
                 .sourceID(sourceID)
                 .sourceURL(sourceURL)
-                .technote("Facial similarity by daner_v1 (remote call to Wolfram backed service")
+                .technote("Facial similarity by daner_v1 (remote call to Wolfram backed service)")
                 .elements(multiMatchesToElements(getPersonMatchesMulti(httpGetRequest(sourceURL))));
     }
 

@@ -30,4 +30,16 @@ class DANERServiceTest {
                 .forEach(System.out::println);
     }
 
+    // Requires daner-face-search to be running locally
+
+    @Test
+    void testRemoteV2() {
+        // https://commons.wikimedia.org/wiki/Face#/media/File:Aj_young_425625.jpg
+        final String sourceURL = "http://localhost:8234/daner-face-search/thispersondoesnotexist.com.jpg";
+
+        TestHelper.initTestSetup();
+
+        System.out.println(DANERService.findSimilarRemoteMultiV2("someID", sourceURL, 10));
+    }
+
 }

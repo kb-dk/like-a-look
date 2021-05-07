@@ -105,7 +105,10 @@ public class DANERData {
     public static SimilarDto fillResponse(SimilarDto response, String imageID) {
         SimilarDto data = getInstance().metadata.get(imageID);
         if (data == null) {
-            throw new InternalServiceException("Error: Unable to locate metadata for imageID '" + imageID + "'");
+            String message = "Error: Unable to locate metadata for imageID '" + imageID + "'";
+            log.error(message);
+            return response;
+            //throw new InternalServiceException(message);
         }
         response.setImage(data.getImage());
         response.setPerson(data.getPerson());
@@ -209,7 +212,9 @@ public class DANERData {
 
         person.setLastName(comma[0]);
         if (comma.length == 1) {
-            log.debug("Only able to extract last name from photographer '" + photographerStr + "'");
+            if (!comma[0].contains("&")) { // e.g. "Budtz Müller & Co."
+                log.debug("Only able to extract last name from photographer '" + photographerStr + "'");
+            }
             return person;
         }
 
