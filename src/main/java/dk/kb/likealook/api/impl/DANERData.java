@@ -17,8 +17,8 @@ package dk.kb.likealook.api.impl;
 import au.com.bytecode.opencsv.CSVReader;
 import dk.kb.likealook.config.ServiceConfig;
 import dk.kb.likealook.model.ImageDto;
+import dk.kb.likealook.model.ImageVariantDto;
 import dk.kb.likealook.model.PersonDto;
-import dk.kb.likealook.model.SimilarDto;
 import dk.kb.likealook.model.SimilarDto;
 import dk.kb.util.Resolver;
 import dk.kb.util.yaml.YAML;
@@ -29,11 +29,15 @@ import org.slf4j.LoggerFactory;
 import java.io.FileReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,8 +56,27 @@ public class DANERData {
     public static final String DANER_KEY = ".likealook.daner";
     public static final String CSV_KEY = ".csv";
 
-    public static final String FACE_RESOURCES = "faces";
-    public static final String CLOSEUP_RESOURCES = "faces_close_cut";
+
+    // If available, these will be used
+    public static final String RES_ORIGINAL = "faces_original";
+    public static final String RES_CLOSE = "faces_close_cut_256";
+    public static final String RES_CUTOUT_70 = "faces_70_256";
+    public static final String RES_CUTOUT_90 = "faces_90_256";
+    public static final String RES_CUTOUT_90_WIDE = "faces_90_1090";
+    public static final String RES_CUTOUT_90_ORG = "faces_90_original";
+
+    // The only required collection is the primary face cutout
+    private final static List<String> NEEDED = Collections.singletonList(
+            RES_CUTOUT_90
+    );
+    private static final List<String> WANTED = Arrays.asList( // Includes the needed!
+            RES_ORIGINAL,
+            RES_CLOSE,
+            RES_CUTOUT_70,
+            RES_CUTOUT_90,
+            RES_CUTOUT_90_WIDE,
+            RES_CUTOUT_90_ORG
+    );
 
     private static DANERData instance;
 
@@ -76,12 +99,18 @@ public class DANERData {
         }
 
         YAML danerConf = config.getSubMap(DANER_KEY);
-        Arrays.asList(FACE_RESOURCES, CLOSEUP_RESOURCES).forEach(
+        NEEDED.forEach(
                 resource -> {
                     if (!ResourceHandler.hasCollection(resource)) {
                         log.warn("Warning: The ResourceHandler has no collection with the name '" + resource +
-                                 "'. For DANERData to work properly it should have both " + FACE_RESOURCES +
-                                 " and " + CLOSEUP_RESOURCES);
+                                 "'. For DANERData to work properly it should have resources " + NEEDED);
+                    }
+                });
+        WANTED.forEach(
+                resource -> {
+                    if (!ResourceHandler.hasCollection(resource)) {
+                        log.info("Note: The ResourceHandler has no collection with the name '" + resource +
+                                 "'. DANERData can provide more complete responses if it has the resources " + WANTED);
                     }
                 });
         String csv = danerConf.getString(CSV_KEY);
@@ -172,6 +201,10 @@ public class DANERData {
     //    0473151.jpg;Alfred;Lehmann;1858;1921;1895-1907; psykolog;Laurberg, Julie Rasmine Marie (7.9.1856-26.6.1925) fotograf;http://www5.kb.dk/images/billed/2010/okt/billeder/object10530/da/
     //    DP002045.jpg;Jens Johannes;Andersen;07.06.1846;04.04.1902;1875-1919; lærer;Jørgensen, Chresten Estrup (11.9.1843-21.11.1879) fotograf|Jørgensen, Jacobine Wendelia f. Bentzen (19.5.1849-);http://www5.kb.dk/images/billed/2010/okt/billeder/object445368/da/
 
+    /**
+     * Takes a single CSV-line, parses it, constructs a {@link SimilarDto} from it and adds that to {@link #metadata}.
+     * @param elements the elements from a CSV-line.
+     */
     private void addCSVLine(String[] elements) {
         final String baseImage = elements[0];
         final String base = baseImage.replaceAll("[.][a-z]*$", ""); // Remove extension
@@ -179,11 +212,21 @@ public class DANERData {
 
         ImageDto image = new ImageDto();
         image.setId(base);
-        image.setMicroURL(ResourceHandler.getResourceURL(CLOSEUP_RESOURCES + "/" + baseImage));
-        image.setTinyURL(ResourceHandler.getResourceURL(FACE_RESOURCES + "/" + baseImage));
-        image.setMediumURL(ResourceHandler.getResourceURL(FACE_RESOURCES + "/" + baseImage)); // TODO: Would be better to link to full portrait
+        image.setMicroURL(getImageURL(RES_CLOSE, baseImage));
+        image.setTinyURL(getImageURL(RES_CUTOUT_70, baseImage));
+        image.setMediumURL(getImageURL(RES_CUTOUT_90, baseImage));
+        image.setFullURL(getImageURL(RES_CUTOUT_90_WIDE, baseImage));
+        image.setRawURL(getImageURL(RES_ORIGINAL, baseImage));
         image.setCreationDate(datesToStr(elements[5]));
         image.setDataURL(elements[8]);
+
+        List<LinkedHashMap<String, Object>> resEntries =
+                ServiceConfig.getConfig().getList("likealook.resources.roots", new ArrayList<>());
+        image.setVariants(resEntries.stream()
+                                  .map(entry -> entry.get("name").toString())
+                                  .map(collection -> createVariant(collection, baseImage))
+                                  .filter(Objects::nonNull)
+                                  .collect(Collectors.toList()));
         similar.setImage(image);
 
         PersonDto person = new PersonDto();
@@ -203,6 +246,28 @@ public class DANERData {
         metadata.put(base, similar);
     }
 
+    private ImageVariantDto createVariant(String collection, String baseImage) {
+        if (!ResourceHandler.hasCollection(collection)) {
+            return null;
+        }
+        return new ImageVariantDto()
+                .url(getImageURL(collection, baseImage))
+                .group(collection)
+                .description(ResourceHandler.getCollectionDescription(collection));
+    }
+
+    /**
+     * Return the full URL for the image in the given collection.
+     * @param collection a DANER image collection.
+     * @param baseImage the image ID.
+     * @return the full URL to the image if the collection is defined, else null.
+     */
+    private String getImageURL(String collection, String baseImage) {
+        return ResourceHandler.hasCollection(collection) ?
+                ResourceHandler.getResourceURL(collection + "/" + baseImage) :
+                null;
+    }
+
     // Jørgensen, Chresten Estrup (11.9.1843-21.11.1879) fotograf
     // Jørgensen, Jacobine Wendelia f. Bentzen (19.5.1849-)
     private static PersonDto parsePhotographer(String photographerStr) {
@@ -212,7 +277,7 @@ public class DANERData {
 
         person.setLastName(comma[0]);
         if (comma.length == 1) {
-            if (!comma[0].contains("&")) { // e.g. "Budtz Müller & Co."
+            if (!comma[0].contains("&") && !comma[0].contains("Atelier")) { // e.g. "Budtz Müller & Co." and "Atelier Moderne"
                 log.debug("Only able to extract last name from photographer '" + photographerStr + "'");
             }
             return person;

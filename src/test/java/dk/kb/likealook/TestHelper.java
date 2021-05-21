@@ -16,10 +16,12 @@ package dk.kb.likealook;
 
 import dk.kb.likealook.config.ServiceConfig;
 import dk.kb.util.yaml.YAML;
+import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -42,4 +44,13 @@ public class TestHelper {
                 ).getBytes(StandardCharsets.UTF_8)));
         ServiceConfig.setConfig(config);
     }
+
+    public static void initWebConfig() {
+        try {
+            ServiceConfig.initialize("conf/like-a-look-*.yaml");
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to initialize web config", e);
+        }
+    }
+
 }

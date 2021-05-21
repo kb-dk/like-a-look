@@ -38,6 +38,8 @@ import java.util.UUID;
 
 /**
  * Simplified file server. Restricted to files directly under given roots: No relative paths, ..-tricks or similar.
+ * The server optionally support ephemeral content, which is auto-deleted after a given timespan or when the
+ * ephemeral cache runs full.
  */
 public class ResourceHandler {
     private static final Logger log = LoggerFactory.getLogger(ResourceHandler.class);
@@ -56,7 +58,7 @@ public class ResourceHandler {
 
     private static final ResourceHandler instance = new ResourceHandler();
 
-    private final Map<String, Path> roots = new HashMap<>();
+    private final Map<String, Root> roots = new HashMap<>();
     private final String resourceURLPrefix;
 
     private final Map<String, Ephemeral> ephemerals;
@@ -75,7 +77,11 @@ public class ResourceHandler {
                 if (!Files.exists(path)) {
                     log.warn("The root '{}' with path '{}' does not exist", name, pathString);
                 }
-                roots.put(name, path);
+                String descriptionString = rootConfig.getString(".description", null);
+                if (descriptionString == null) {
+                    log.warn("The resource root {} has no description. Please provide one", name);
+                }
+                roots.put(name, new Root(name, descriptionString, path));
             }
         }
         resourceURLPrefix = conf.getString(RESOURCE_URL_PREFIX_KEY, RESOURCE_URL_PREFIX_DEFAULT);
@@ -183,8 +189,8 @@ public class ResourceHandler {
             return instance.ephemerals.containsKey(resource);
         }
 
-        Path root = instance.roots.get(collection);
-        return root != null && Files.isReadable(root.resolve(resource));
+        Root root = instance.roots.get(collection);
+        return root != null && Files.isReadable(root.getPath().resolve(resource));
     }
 
     /**
@@ -196,13 +202,17 @@ public class ResourceHandler {
         return instance.ephemerals.get(ephemeralID);
     }
 
+    public static String getCollectionDescription(String collection) {
+        return instance.roots.containsKey(collection) ? instance.roots.get(collection).getDescription() : null;
+    }
+
     private InputStream getUnqualifiedResource(String id) {
         if (ephemerals.containsKey(id)) { // Theoretically it could become too old between the check and the retrieval
             return new ByteArrayInputStream(ephemerals.get(id).content);
         }
 
-        for (Path root: roots.values()) {
-            Path file = root.resolve(id);
+        for (Root root: roots.values()) {
+            Path file = root.getPath().resolve(id);
             if (Files.exists(file)) {
                 try {
                     return Files.newInputStream(file);
@@ -231,11 +241,11 @@ public class ResourceHandler {
         final String id = collection + "/" + resource;
 
         // Resolve file system content
-        Path root = roots.get(collection);
+        Root root = roots.get(collection);
         if (root == null) {
             throw new NotFoundServiceException("Non-defined group '" + collection + "' for ID-lookup for '" + id + "'");
         }
-        Path file = root.resolve(resource);
+        Path file = root.getPath().resolve(resource);
         if (!Files.exists(file)) {
             throw new NotFoundServiceException("Unable to resolve resource '" + id + "'");
         }
@@ -332,6 +342,36 @@ public class ResourceHandler {
                 return false;
             }
             return true;
+        }
+    }
+
+    /**
+     * Resource Root.
+     */
+    private static class Root {
+        private final String name;
+        private final String description;
+        private final Path path;
+
+        public Root(String id, Path path) {
+            this (id, null, path);
+        }
+        public Root(String id, String description, Path path) {
+            this.name = id;
+            this.description = description;
+            this.path = path;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public Path getPath() {
+            return path;
         }
     }
 }

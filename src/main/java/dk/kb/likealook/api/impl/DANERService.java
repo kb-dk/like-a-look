@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -135,6 +136,9 @@ public class DANERService {
         }
     }
 
+    /**
+     * Mock service for finding similar faces. This service assigns random known persons to the result.
+     */
     private static SimilarResponseDto findSimilarMock(String sourceID, Integer maxMatches) {
         final int ELEMENTS = 2;
         final Random r = new Random();
@@ -192,6 +196,13 @@ public class DANERService {
 
     /* ************************************************************************************************************** */
 
+    /**
+     * DANER face search by calling an installation of daner-face-search (https://github.com/kb-dk/daner-face-search).
+     * @param sourceID   the ID of the source image (used for easy mapping responses to requests)
+     * @param sourceURL  the URL for the source image.
+     * @param maxMatches the maximum number of matches.
+     * @return a SimilarResponse based on the Wolfram script from the daner-face-search project.
+     */
     static SimilarResponseDto findSimilarRemoteMultiV2(String sourceID, String sourceURL, Integer maxMatches) {
         if (getInstance().remoteURL2 == null) {
             throw new InternalServiceException("daner_v2 remote key is not configured");
@@ -236,17 +247,32 @@ public class DANERService {
                            + getInstance().remoteURL2 + "'", e);
         }
         // {"technote":"Wolfram script through Java","imageURL":"http://localhost:8234/daner-face-search/thispersondoesnotexist.com.jpg","faces":[{"boundingBox":null,"similars":[{"distance":54.06735012891766,"id":"DP032144"},{"distance":54.07278819251751,"id":"DP010461"},{"distance":57.71844987155849,"id":"DP036224"},{"distance":57.75755779511265,"id":"DP039198"},{"distance":58.682492068468754,"id":"DP032419"},{"distance":59.09122417712019,"id":"DP014344"},{"distance":59.886375295850556,"id":"DP017944"},{"distance":60.3829732735677,"id":"DP017734"},{"distance":60.6063962670953,"id":"DP019333"},{"distance":61.03964990454093,"id":"DP011139"}],"index":0}]}
-        return StreamSupport.stream(json.getJSONArray("faces").spliterator(), false)
-                .map(faceO -> jsonFaceToElementDto((JSONObject)faceO))
-                .collect(Collectors.toList());
+        try {
+            return stream(json.getJSONArray("faces"))
+                    .map(faceO -> jsonFaceToElementDto((JSONObject) faceO))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw logThrow("Unexpected JSON from response: >>>" + json + "<<<", e);
+        }
     }
+
+    private static Stream<Object> stream(JSONArray json) {
+        // When running in tomcat we get  NoSuchMethodError: 'java.util.Spliterator org.json.JSONArray.spliterator()'
+        // for StreamSupport.stream(json.spliterator(), false)
+        List<Object> result = new ArrayList<>(json.length());
+        for (int i = 0 ; i < json.length() ; i++) {
+            result.add(json.get(i));
+        }
+        return result.stream();
+    }
+
 
     // TODO: Handle BoundingBox if present
     private static ElementDto jsonFaceToElementDto(JSONObject face) {
         // {"boundingBox":null,"similars":[{"distance":54.06735012891766,"id":"DP032144"},{"distance":54.07278819251751,"id":"DP010461"},{"distance":57.71844987155849,"id":"DP036224"},{"distance":57.75755779511265,"id":"DP039198"},{"distance":58.682492068468754,"id":"DP032419"},{"distance":59.09122417712019,"id":"DP014344"},{"distance":59.886375295850556,"id":"DP017944"},{"distance":60.3829732735677,"id":"DP017734"},{"distance":60.6063962670953,"id":"DP019333"},{"distance":61.03964990454093,"id":"DP011139"}],"index":0}
         return new ElementDto()
                 .index(face.getInt("index"))
-                .similars(StreamSupport.stream(face.getJSONArray("similars").spliterator(), false)
+                .similars(stream(face.getJSONArray("similars"))
                         .map(similarO -> jsonSimilarToSimilarDto((JSONObject)similarO))
                         .collect(Collectors.toList()));
     }

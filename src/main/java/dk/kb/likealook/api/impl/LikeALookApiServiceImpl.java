@@ -9,6 +9,7 @@ import dk.kb.likealook.model.ElementDto;
 import dk.kb.likealook.model.ErrorDto;
 import java.io.File;
 import dk.kb.likealook.model.ImageDto;
+import dk.kb.likealook.model.ImageVariantDto;
 import java.util.List;
 import java.util.Map;
 import dk.kb.likealook.model.PersonDto;
@@ -116,8 +117,8 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<CollectionDto> response = new ArrayList<>();
         CollectionDto item = new CollectionDto();
-        item.setId("e0ED3V3");
-        item.setDescription("Y6inj");
+        item.setId("UG9Hcd");
+        item.setDescription("K9rLNYpD6");
         response.add(item);
         return response;
         } catch (Exception e){
@@ -184,9 +185,9 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         try{ 
             List<SubjectDto> response = new ArrayList<>();
         SubjectDto item = new SubjectDto();
-        item.setSubject("Fb08ms8h");
-        item.setSourceID("ZdC66");
-        item.setConfidence(-4.68295e+37F);
+        item.setSubject("jG98E");
+        item.setSourceID("Ft9m1");
+        item.setConfidence(1.53346e+38F);
         response.add(item);
         return response;
         } catch (Exception e){
@@ -220,52 +221,59 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
         
         try{ 
             SimilarResponseDto response = new SimilarResponseDto();
-        response.setSourceID("Sc1bA");
-        response.setSourceURL("Aj4KZOa");
+        response.setSourceID("pqK32");
+        response.setSourceURL("f86Jr3");
         List<ElementDto> elements = new ArrayList<>();
         ElementDto elements2 = new ElementDto();
-        elements2.setIndex(-1893703171);
+        elements2.setIndex(-551134932);
         BoundingBoxDto boundingBox = new BoundingBoxDto();
-        boundingBox.setX(496700471);
-        boundingBox.setY(-387764643);
-        boundingBox.setWidth(799859747);
-        boundingBox.setHeight(737405172);
+        boundingBox.setX(-602723214);
+        boundingBox.setY(832333643);
+        boundingBox.setWidth(-777344120);
+        boundingBox.setHeight(2113679537);
         elements2.setBoundingBox(boundingBox);
         List<SimilarDto> similars = new ArrayList<>();
         SimilarDto similars2 = new SimilarDto();
-        similars2.setDistance(-5950959864781651995.11865679473662818D);
+        similars2.setDistance(8988680499547004931.3496593071150692D);
         ImageDto image = new ImageDto();
-        image.setId("z22JtQ91");
-        image.setMicroURL("dA6DB8");
-        image.setTinyURL("K231iQ");
-        image.setMediumURL("WXw2EX");
-        image.setFullURL("mBTWv");
-        image.setRawURL("oumHb");
-        image.setIiifURL("G83c9rQVo");
-        image.setCreationDate("eQFwmx");
-        image.setDataURL("y7otUd");
+        image.setId("KY0sfh");
+        image.setMicroURL("siFNyI8");
+        image.setTinyURL("b8ipj");
+        image.setMediumURL("MLNgBQV");
+        image.setFullURL("vicwl");
+        image.setRawURL("d0P9hzu");
+        image.setIiifURL("bOQ25");
+        image.setCreationDate("KBr37");
+        image.setDataURL("c837m");
+        List<ImageVariantDto> variants = new ArrayList<>();
+        ImageVariantDto variants2 = new ImageVariantDto();
+        variants2.setUrl("ba3CMvV");
+        variants2.setGroup("U02h3v337");
+        variants2.setDescription("c42UZ5");
+        variants.add(variants2);
+        image.setVariants(variants);
         similars2.setImage(image);
         PersonDto person = new PersonDto();
-        person.setFirstName("iV5AdLtELR");
-        person.setLastName("Ab8GvpOQ5");
-        person.setBirthday("c03Za8");
-        person.setDeathday("cm1LR4");
-        person.setOccupation("SwbV6");
+        person.setFirstName("a1XVdX");
+        person.setLastName("pb8w5");
+        person.setBirthday("kZm99a");
+        person.setDeathday("JB1HQ1a");
+        person.setOccupation("w5YQ88PVnb");
         similars2.setPerson(person);
         List<PersonDto> imageCreators = new ArrayList<>();
         PersonDto imageCreators2 = new PersonDto();
-        imageCreators2.setFirstName("NK7261");
-        imageCreators2.setLastName("CL7U7");
-        imageCreators2.setBirthday("r0j1A");
-        imageCreators2.setDeathday("GgAnx");
-        imageCreators2.setOccupation("jMuTX");
+        imageCreators2.setFirstName("O7ks2P");
+        imageCreators2.setLastName("ZE4Z0");
+        imageCreators2.setBirthday("s2MAF5q");
+        imageCreators2.setDeathday("mJu90");
+        imageCreators2.setOccupation("PHWbRQC");
         imageCreators.add(imageCreators2);
         similars2.setImageCreators(imageCreators);
         similars.add(similars2);
         elements2.setSimilars(similars);
         elements.add(elements2);
         response.setElements(elements);
-        response.setTechnote("IyrY3o09ug");
+        response.setTechnote("a8LUQX9");
         return response;
         } catch (Exception e){
             throw handleException(e);
@@ -321,7 +329,7 @@ public class LikeALookApiServiceImpl implements LikeALookApi {
     
         
         try{ 
-            String response = "e2P80aJ4";
+            String response = "yS5sstf";
         return response;
         } catch (Exception e){
             throw handleException(e);

@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- *
+ * Experimental: Classification of images.
  */
 public class SubjectHandler implements Closeable {
     private static final Logger log = LoggerFactory.getLogger(FaceHandler.class);

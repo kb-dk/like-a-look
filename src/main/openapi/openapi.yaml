@@ -333,7 +333,7 @@ components:
     Image:
       type: object
       required:
-        - previewURL
+        - id
       properties:
         id:
           type: string
@@ -371,6 +371,32 @@ components:
           type: string
           description: 'A link to a resource (typically a webpage) with data about the similar image'
           example: 'http://www5.kb.dk/images/billed/2010/okt/billeder/object10530/da/'
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageVariant'
+          description: 'Collection specific image variants'
+
+    ImageVariant:
+      type: object
+      required:
+        - url
+        - description
+      properties:
+        url:
+          type: string
+          description: 'A direct link to the image variant usable for inline image viewing or image download'
+          example: 'http://kb-images.kb.dk/DAMJP2%2FDAM%2FSamlingsbilleder%2FSamlingsbilleder%2Fsamlingsbilleder%2F1352%2F0473151/full/400,/0/native.jpg'
+        group:
+          type: string
+          description: 'The id of the group that the image belongs to'
+          example: 'faces_close_cut_256'
+        description:
+          type: string
+          description: 'A human readable description of the image variant'
+          example: |
+            Square cutouts with distance 70 (internal measurement) and width & height 256 pixels.
+            The cutouts are scaled down to enforce the size'
 
     Box:
       type: object

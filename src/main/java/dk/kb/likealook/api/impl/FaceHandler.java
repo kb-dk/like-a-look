@@ -44,7 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Detection of faces in images.
  */
 public class FaceHandler {
     private static final Logger log = LoggerFactory.getLogger(FaceHandler.class);
