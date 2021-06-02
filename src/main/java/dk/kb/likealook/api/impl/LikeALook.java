@@ -84,7 +84,7 @@ public class LikeALook implements LikeALookApi {
     private transient MessageContext messageContext;
 
     public static final String DEFAULTCOLLECTION_KEY = ".likealook.similar.collections.default";
-    public static final String DEFAULTCOLLECTION_DEFAULT = "daner_mock";
+    public static final String DEFAULTCOLLECTION_DEFAULT = "daner_v2";
 
     /**
      * List the available collections
@@ -100,15 +100,15 @@ public class LikeALook implements LikeALookApi {
     public List<CollectionDto> collectionsGet() throws ServiceException {
         enableCORS();
         return Arrays.asList(
-                new CollectionDto().id("daner_mock").description(
-                        "Used for testing calls to the similar-service. " +
-                        "Delivers randomly selected profiles from the DANER collection"),
-                new CollectionDto().id("daner_v1").description(
-                        "Finds the most similar portraits in the DANER collection. " +
-                        "Uses the Wolfram engine through the Wolfram service framework for face detection, feature extraction and and similarity distance"),
                 new CollectionDto().id("daner_v2").description(
                         "Finds the most similar portraits in the DANER collection. " +
-                        "Uses the Wolfram engine called directly from Java for face detection, feature extraction and and similarity distance")
+                        "Uses the Wolfram engine called directly from Java for face detection, feature extraction and and similarity distance"),
+                new CollectionDto().id("daner_v1").description(
+                        "Deprecated (probably does not work). Finds the most similar portraits in the DANER collection. " +
+                        "Uses the Wolfram engine through the Wolfram service framework for face detection, feature extraction and and similarity distance"),
+                new CollectionDto().id("daner_mock").description(
+                        "Used for testing calls to the similar-service. " +
+                        "Delivers randomly selected profiles from the DANER collection")
         );
     }
 
