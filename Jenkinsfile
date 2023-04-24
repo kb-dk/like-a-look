@@ -51,7 +51,7 @@ openshift.withCluster() { // Use "default" cluster or fallback to OpenShift clus
                         stage("Create build and deploy application") { 
                             openshift.newBuild("--strategy source", "--binary", "-i kb-infra/kb-s2i-tomcat90", "--name like-a-look")
                             openshift.startBuild("like-a-look", "--from-dir=.", "--follow")
-                            openshift.newApp("like-a-look:latest")
+                            openshift.newApp("like-a-look", "-e BUILD_NUMBER=latest")
                             openshift.create("route", "edge", "--service=like-a-look")
                         }
                     }
